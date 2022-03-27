@@ -49,6 +49,14 @@ class Record:
         return d
 
 
+class RecordExistsError(Exception):
+    pass
+
+
+class NoSuchRecordError(Exception):
+    pass
+
+
 class Database:
     def __init__(self, crypto_name):
         self._crypto_name = crypto_name
@@ -58,12 +66,16 @@ class Database:
         return self._crypto_name
 
     def add_record(self, record):
+        if self._find_by_date(record.date) is not None:
+            raise RecordExistsError
         self._records.append(record)
+        self._sort_by_date()
 
     def set_record(self, record):
-        for i in range(len(self._records)):
-            if self._records[i].match(record):
-                self._records[i].update(record)
+        r = self._find_by_date(record.date)
+        if r is None:
+            raise NoSuchRecordError
+        r.update(record)
 
     def dump(self):
         for r in self._records:
@@ -71,6 +83,16 @@ class Database:
 
     def records(self):
         return self._records
+
+    def _find_by_date(self, date):
+        for r in self._records:
+            if r.date == date:
+                return r
+        else:
+            return None
+
+    def _sort_by_date(self):
+        self._records.sort(key=lambda r: r.date)
 
 
 def get_file_name(crypto_name):
@@ -130,8 +152,10 @@ def record_to_line(r: Record):
 def save(db: Database):
     file_name = get_file_name(crypto_name=db.crypto_name())
     tmp_file_name = file_name + ".tmp"
+    bak_file_name = file_name + ".bak"
     with open(tmp_file_name, "w") as f:
         csv_writer = csv.writer(f)
         for r in db.records():
             csv_writer.writerow(record_to_line(r))
+    shutil.move(file_name, bak_file_name)
     shutil.move(tmp_file_name, file_name)

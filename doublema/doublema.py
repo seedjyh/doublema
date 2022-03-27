@@ -49,8 +49,6 @@ def get_options(argv) -> Options:
             options.usdt_balance = v
         else:
             raise Exception("unknown k:" + k)
-    print("get_options.opts", opts)
-    print("get_options.options", options)
     return options
 
 
@@ -63,7 +61,6 @@ def opt_to_record(opt) -> database.Record:
         crypto_balance=opt.crypto_balance,
         usdt_balance=opt.usdt_balance,
     )
-    print("opt_to-record.opt", opt.__dict__, "record:", r.__dict__)
     return r
 
 
@@ -79,8 +76,9 @@ if __name__ == "__main__":
             db.dump()
         else:
             raise Exception("unknown operation:" + opt.operation)
+    except database.RecordExistsError as e:
+        print("ERR: RecordExistsError", e)
     except Exception as e:
         print("ERR:", e)
     finally:
         database.save(db)
-        print("EXIT")
