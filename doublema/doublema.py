@@ -3,6 +3,7 @@ import getopt
 import sys
 
 import database
+import strategy
 
 
 class Options:
@@ -74,11 +75,13 @@ if __name__ == "__main__":
             db.set_record(opt_to_record(opt))
         elif opt.operation == "show":
             db.dump()
+            print("Last score:", strategy.get_score(db.records()))
         else:
             raise Exception("unknown operation:" + opt.operation)
     except database.RecordExistsError as e:
         print("ERR: RecordExistsError", e)
     except Exception as e:
         print("ERR:", e)
+        raise e
     finally:
         database.save(db)
