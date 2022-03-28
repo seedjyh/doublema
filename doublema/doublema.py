@@ -2,10 +2,7 @@
 import getopt
 import sys
 
-import database
-import strategy
-import display
-import command
+from doublema import database, command
 
 
 class Options:

@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
 import statistics
 
-import trend
-import database
-import display
+from doublema import trend, database, display
 
 
 class Account:
     def __init__(self, crypto_name, crypto_balance, usdt_balance):
-        self._crypto_name = crypto_name
-        self._crypto_balance = crypto_balance
-        self._usdt_balance = usdt_balance
+        self.crypto_name = crypto_name
+        self.crypto_balance = crypto_balance
+        self.usdt_balance = usdt_balance
 
     def show(self):
-        record = {self._crypto_name: self._crypto_balance, "USDT": self._crypto_balance}
+        record = {self.crypto_name: self.crypto_balance, "USDT": self.usdt_balance}
         display.display([record, ])
 
 
@@ -34,6 +32,9 @@ class Trade:
             return "SELL {} {} (price= {}).".format(-self._crypto_diff, self._crypto_name, self._price)
         else:
             return "BUY {} with {} USDT (price= {}).".format(-self._crypto_name, -self._usdt_diff, self._price)
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
 
 
 class Strategy:
@@ -94,6 +95,16 @@ class Strategy:
             return 0.5
 
     @staticmethod
-    def advice_trade(self, account: Account, score: float) -> Trade:
-        return Trade()
-
+    def advice_trade(account: Account, score: float, price: float) -> Trade:
+        total_usdt = account.crypto_balance * price + account.usdt_balance
+        new_account = Account(
+            crypto_name=account.crypto_name,
+            crypto_balance=total_usdt * score / price,
+            usdt_balance=total_usdt * (1.0 - score),
+        )
+        return Trade(
+            crypto_name=account.crypto_name,
+            price=price,
+            crypto_diff=new_account.crypto_balance - account.crypto_balance,
+            usdt_diff=new_account.usdt_balance - account.usdt_balance,
+        )

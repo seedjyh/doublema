@@ -4,9 +4,7 @@
 """
 import abc
 
-import database
-import display
-import strategy
+from doublema import database, display, strategy
 
 
 class Command(metaclass=abc.ABCMeta):
