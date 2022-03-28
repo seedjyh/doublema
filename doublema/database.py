@@ -61,8 +61,7 @@ class Database:
         r.update(record)
 
     def dump(self):
-        for r in self._records:
-            print("record in database:", r.__dict__)
+        display(self)
 
     def records(self):
         return self._records
@@ -180,3 +179,21 @@ def save(db: Database):
         shutil.move(file_name, bak_file_name)
     if os.path.exists(tmp_file_name):
         shutil.move(tmp_file_name, file_name)
+
+
+def display(db: Database):
+    field2len = {}
+    for r in db.records():
+        for k, v in r.__dict__.items():
+            if field2len.get(k) is None:
+                field2len[k] = len(k)
+            field2len[k] = max(field2len[k], len(str(v)))
+    # display column name
+    print("+-" + "-+-".join(['-' * v for k, v in field2len.items()]) + "-+")
+    print("| " + " | ".join([k.ljust(v) for k, v in field2len.items()]) + " |")
+    print("+-" + "-+-".join(['-' * v for k, v in field2len.items()]) + "-+")
+    # display record fields
+    for r in db.records():
+        print("| " + " | ".join([str(r.__dict__[k]).ljust(v) for k, v in field2len.items()]) + " |")
+    # display end line
+    print("+-" + "-+-".join(['-' * v for k, v in field2len.items()]) + "-+")
