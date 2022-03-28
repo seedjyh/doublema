@@ -2,7 +2,7 @@
 import statistics
 
 import trend
-from database import Record
+import database
 
 
 def get_score(records) -> float:
@@ -19,7 +19,7 @@ def get_score(records) -> float:
     ])
 
 
-def _get_k_ma13_score(r: Record) -> float:
+def _get_k_ma13_score(r: database.Record) -> float:
     if trend.larger(r.k_price, r.ma13_price):
         return 1.0
     elif trend.less(r.k_price, r.ma13_price):
@@ -37,7 +37,7 @@ def _get_k_self_score(records) -> float:
         return 0.5
 
 
-def _get_ma13_ma55_score(r: Record) -> float:
+def _get_ma13_ma55_score(r: database.Record) -> float:
     if trend.larger(r.ma13_price, r.ma55_price):
         return 1.0
     elif trend.less(r.ma13_price, r.ma55_price):

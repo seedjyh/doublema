@@ -3,6 +3,8 @@ import csv
 import os
 import shutil
 
+import display
+
 
 class Price:
     def __init__(self, field: str):
@@ -17,6 +19,16 @@ class Record:
         self.ma55_price = ma55_price
         self.crypto_balance = crypto_balance
         self.usdt_balance = usdt_balance
+
+    def dict(self) -> dict:
+        return {
+            "date": self.date,
+            "k": self.k_price,
+            "ma13": self.ma13_price,
+            "ma55": self.ma55_price,
+            "crypto": self.crypto_balance,
+            "usdt": self.usdt_balance,
+        }
 
     def update(self, other):
         # won't modify date
@@ -61,7 +73,7 @@ class Database:
         r.update(record)
 
     def dump(self):
-        display(self)
+        display.display([r.dict() for r in self._records])
 
     def records(self):
         return self._records
@@ -180,20 +192,36 @@ def save(db: Database):
     if os.path.exists(tmp_file_name):
         shutil.move(tmp_file_name, file_name)
 
-
-def display(db: Database):
-    field2len = {}
-    for r in db.records():
-        for k, v in r.__dict__.items():
-            if field2len.get(k) is None:
-                field2len[k] = len(k)
-            field2len[k] = max(field2len[k], len(str(v)))
-    # display column name
-    print("+-" + "-+-".join(['-' * v for k, v in field2len.items()]) + "-+")
-    print("| " + " | ".join([k.ljust(v) for k, v in field2len.items()]) + " |")
-    print("+-" + "-+-".join(['-' * v for k, v in field2len.items()]) + "-+")
-    # display record fields
-    for r in db.records():
-        print("| " + " | ".join([str(r.__dict__[k]).ljust(v) for k, v in field2len.items()]) + " |")
-    # display end line
-    print("+-" + "-+-".join(['-' * v for k, v in field2len.items()]) + "-+")
+#
+# def display(db: Database):
+#     field2len = {}
+#     for r in db.records():
+#         for k, v in r.dict().items():
+#             if field2len.get(k) is None:
+#                 field2len[k] = len(k)
+#             field2len[k] = max(field2len[k], len(str(v)))
+#     # display column name
+#     print("+-" + "-+-".join(['-' * v for k, v in field2len.items()]) + "-+")
+#     print("| " + " | ".join([k.ljust(v) for k, v in field2len.items()]) + " |")
+#     print("+-" + "-+-".join(['-' * v for k, v in field2len.items()]) + "-+")
+#     # display record fields
+#     for r in db.records():
+#         print("| " + " | ".join([beautiful_column(r.dict()[k], v) for k, v in field2len.items()]) + " |")
+#     # display end line
+#     print("+-" + "-+-".join(['-' * v for k, v in field2len.items()]) + "-+")
+#
+#
+# def str_field(value):
+#     if value is None:
+#         return "(null)"
+#     else:
+#         return str(value)
+#
+#
+# def beautiful_column(value, width):
+#     if type(value) is str:
+#         return str_field(value).ljust(width)
+#     elif value is None:
+#         return str_field(value).ljust(width)
+#     else:
+#         return str_field(value).rjust(width)
