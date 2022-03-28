@@ -1,27 +1,27 @@
 # -*- coding: utf-8 -*-
 import pytest as pytest
 
-from doublema.database import Database, Record, RecordExistsError, NoSuchRecordError
+import database
 
 
 class TestDatabase:
     def test_add_existed_date(self):
-        db = Database(crypto_name="btc")
-        r = Record(date="2022-03-28")
+        db = database.Database(crypto_name="btc")
+        r = database.Record(date="2022-03-28")
         db.add_record(record=r)
-        with pytest.raises(RecordExistsError) as e:
+        with pytest.raises(database.RecordExistsError) as e:
             db.add_record(record=r)
 
     def test_set_not_exist_date(self):
-        db = Database(crypto_name="btc")
-        r = Record(date="2022-03-28")
-        with pytest.raises(NoSuchRecordError) as e:
+        db = database.Database(crypto_name="btc")
+        r = database.Record(date="2022-03-28")
+        with pytest.raises(database.NoSuchRecordError) as e:
             db.set_record(record=r)
 
     def test_add_order_by_date(self):
-        db = Database(crypto_name="btc")
-        r1 = Record(date="2022-03-28")
-        r2 = Record(date="2022-03-27")
+        db = database.Database(crypto_name="btc")
+        r1 = database.Record(date="2022-03-28")
+        r2 = database.Record(date="2022-03-27")
         db.add_record(r1)
         db.add_record(r2)
         res = db.records()
@@ -29,10 +29,10 @@ class TestDatabase:
         assert res[1].date == "2022-03-28"
 
     def test_set_partial_fields(self):
-        db = Database(crypto_name="btc")
-        r = Record(date="2022-03-28")
+        db = database.Database(crypto_name="btc")
+        r = database.Record(date="2022-03-28")
         db.add_record(r)
-        db.set_record(record=Record(date="2022-03-28", k_price=3.14))
+        db.set_record(record=database.Record(date="2022-03-28", k_price=3.14))
         rec = db.records()
         assert rec[0].date == "2022-03-28"
         assert rec[0].k_price == 3.14

@@ -3,6 +3,37 @@ import statistics
 
 import trend
 import database
+import display
+
+
+class Account:
+    def __init__(self, crypto_name, crypto_balance, usdt_balance):
+        self._crypto_name = crypto_name
+        self._crypto_balance = crypto_balance
+        self._usdt_balance = usdt_balance
+
+    def show(self):
+        record = {self._crypto_name: self._crypto_balance, "USDT": self._crypto_balance}
+        display.display([record, ])
+
+
+class Trade:
+    def __init__(self, crypto_name, price, crypto_diff, usdt_diff):
+        self._crypto_name = crypto_name
+        self._price = price
+        self._crypto_diff = crypto_diff
+        self._usdt_diff = usdt_diff
+        if abs(crypto_diff * price + usdt_diff) > 0.001:
+            raise Exception(
+                "Invalid trade parameter: price={}, crypto_diff={}, usdt_diff={}".format(price, crypto_diff, usdt_diff))
+
+    def __str__(self):
+        if abs(self._usdt_diff) < 0.001:
+            return "Do nothing."
+        if self._usdt_diff < 0:
+            return "SELL {} {} (price= {}).".format(-self._crypto_diff, self._crypto_name, self._price)
+        else:
+            return "BUY {} with {} USDT (price= {}).".format(-self._crypto_name, -self._usdt_diff, self._price)
 
 
 class Strategy:
@@ -61,3 +92,8 @@ class Strategy:
             return 0.0
         else:
             return 0.5
+
+    @staticmethod
+    def advice_trade(self, account: Account, score: float) -> Trade:
+        return Trade()
+
