@@ -4,6 +4,8 @@ import sys
 
 import database
 import strategy
+import display
+import command
 
 
 class Options:
@@ -70,12 +72,11 @@ if __name__ == "__main__":
     db = database.load(crypto_name=opt.crypto_name)
     try:
         if opt.operation == "add":
-            db.add_record(opt_to_record(opt))
+            command.Add(db=db, record=opt_to_record(opt)).execute()
         elif opt.operation == "set":
-            db.set_record(opt_to_record(opt))
+            command.Set(db=db, record=opt_to_record(opt)).execute()
         elif opt.operation == "show":
-            db.dump()
-            print("Last score:", strategy.get_score(db.records()))
+            command.Show(db=db).execute()
         else:
             raise Exception("unknown operation:" + opt.operation)
     except database.RecordExistsError as e:

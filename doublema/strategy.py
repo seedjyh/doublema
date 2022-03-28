@@ -5,18 +5,21 @@ import trend
 import database
 
 
-def get_score(records) -> float:
+def get_score(records):
     """
     获取 records 最后一个 Record 的分数
     :param records: LIST<Record>
     :return:
     """
-    return statistics.mean([
-        _get_k_ma13_score(records[-1]),
-        _get_k_self_score(records),
-        _get_ma13_ma55_score(records[-1]),
-        _get_ma13_self_score(records),
-    ])
+    try:
+        return statistics.mean([
+            _get_k_ma13_score(records[-1]),
+            _get_k_self_score(records),
+            _get_ma13_ma55_score(records[-1]),
+            _get_ma13_self_score(records),
+        ])
+    except trend.NoEnoughDataError:
+        return None
 
 
 def _get_k_ma13_score(r: database.Record) -> float:

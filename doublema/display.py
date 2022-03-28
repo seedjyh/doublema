@@ -6,7 +6,7 @@ def display(lines):
         for k, v in r.items():
             if field2len.get(k) is None:
                 field2len[k] = len(k)
-            field2len[k] = max(field2len[k], len(str(v)))
+            field2len[k] = max(field2len[k], len(str_field(v)))
     # display column name
     print("+-" + "-+-".join(['-' * v for k, v in field2len.items()]) + "-+")
     print("| " + " | ".join([k.ljust(v) for k, v in field2len.items()]) + " |")
@@ -20,7 +20,7 @@ def display(lines):
 
 def str_field(value):
     if value is None:
-        return "(null)"
+        return "NULL"
     else:
         return str(value)
 

@@ -23,11 +23,11 @@ class Record:
     def dict(self) -> dict:
         return {
             "date": self.date,
-            "k": self.k_price,
-            "ma13": self.ma13_price,
-            "ma55": self.ma55_price,
-            "crypto": self.crypto_balance,
-            "usdt": self.usdt_balance,
+            "k_price": self.k_price,
+            "ma13_price": self.ma13_price,
+            "ma55_price": self.ma55_price,
+            "crypto_balance": self.crypto_balance,
+            "usdt_balance": self.usdt_balance,
         }
 
     def update(self, other):
