@@ -79,6 +79,8 @@ if __name__ == "__main__":
             command.Show(db=db).execute()
         elif opt.operation == "playback":
             command.Playback(db=db).execute()
+        elif opt.operation == "advice":
+            command.Advice(db=db).execute()
         else:
             raise Exception("unknown operation:" + opt.operation)
     except database.RecordExistsError as e:

@@ -76,3 +76,27 @@ class Playback(Command):
         crypto = total * score / price
         usdt = total * (1.0 - score)
         return crypto, usdt
+
+
+class Advice(Command):
+    def __init__(self, db: database.Database):
+        self._db = db
+
+    def execute(self):
+        baseline_date = None
+        baseline_crypto = None
+        baseline_usdt = None
+        for r in self._db.records():
+            if r.crypto_balance is not None and r.usdt_balance is not None:
+                baseline_date = r.date
+                baseline_crypto = r.crypto_balance
+                baseline_usdt = r.usdt_balance
+        print("[ baseline ]")
+        print("date:", baseline_date)
+        print("crypto:", baseline_crypto)
+        print("usdt:", baseline_usdt)
+        today_date = self._db.records()[-1].date
+        today_score = strategy.get_score(self._db.records())
+        print("[ today advice ]")
+        print("date:", today_date)
+        print("score:", today_score)
