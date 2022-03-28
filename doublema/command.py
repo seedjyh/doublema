@@ -36,16 +36,12 @@ class Set(Command):
 class Show(Command):
     def __init__(self, db: database.Database):
         self._db = db
+        self._strategy = strategy.Strategy()
 
     def execute(self):
         records = self._db.records()
-        self.show(records)
-        print("Last score:", strategy.get_score(records))
-
-    @staticmethod
-    def show(records):
         display.display(
-            [{**records[i].dict(), "score": strategy.get_score(records[:i + 1])} for i in range(len(records))])
+            [{**records[i].dict(), "score": self._strategy.get_score(records[:i + 1])} for i in range(len(records))])
 
 
 class Playback(Command):
@@ -53,6 +49,7 @@ class Playback(Command):
         self._db = db
         self._crypto = crypto
         self._usdt = usdt
+        self._strategy = strategy.Strategy()
 
     def execute(self):
         crypto = self._crypto
@@ -60,7 +57,7 @@ class Playback(Command):
         records = []
         for i in range(len(self._db.records())):
             new_record = {**self._db.records()[i].dict()}
-            score = strategy.get_score(self._db.records()[:i + 1])
+            score = self._strategy.get_score(self._db.records()[:i + 1])
             new_record["score"] = score
             if score is not None:
                 crypto, usdt = self._trade(crypto, usdt, self._db.records()[i].k_price, score)
@@ -81,6 +78,7 @@ class Playback(Command):
 class Advice(Command):
     def __init__(self, db: database.Database):
         self._db = db
+        self._strategy = strategy.Strategy()
 
     def execute(self):
         baseline_date = None
@@ -96,7 +94,7 @@ class Advice(Command):
         print("crypto:", baseline_crypto)
         print("usdt:", baseline_usdt)
         today_date = self._db.records()[-1].date
-        today_score = strategy.get_score(self._db.records())
+        today_score = self._strategy.get_score(self._db.records())
         print("[ today advice ]")
         print("date:", today_date)
         print("score:", today_score)
