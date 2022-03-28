@@ -12,12 +12,13 @@ def get_score(records):
     :return:
     """
     try:
-        return statistics.mean([
+        scores = [
             _get_k_ma13_score(records[-1]),
-            _get_k_self_score(records),
+            _get_ma13_score(records),
             _get_ma13_ma55_score(records[-1]),
-            _get_ma13_self_score(records),
-        ])
+            _get_ma55_score(records),
+        ]
+        return statistics.mean(scores)
     except trend.NoEnoughDataError:
         return None
 
@@ -31,10 +32,10 @@ def _get_k_ma13_score(r: database.Record) -> float:
         return 0.5
 
 
-def _get_k_self_score(records) -> float:
-    if trend.is_increasing([r.k_price for r in records]):
+def _get_ma13_score(records) -> float:
+    if trend.is_increasing([r.ma13_price for r in records]):
         return 1.0
-    elif trend.is_decreasing([r.k_price for r in records]):
+    elif trend.is_decreasing([r.ma13_price for r in records]):
         return 0.0
     else:
         return 0.5
@@ -49,10 +50,10 @@ def _get_ma13_ma55_score(r: database.Record) -> float:
         return 0.5
 
 
-def _get_ma13_self_score(records) -> float:
-    if trend.is_increasing([r.ma13_price for r in records]):
+def _get_ma55_score(records) -> float:
+    if trend.is_increasing([r.ma55_price for r in records]):
         return 1.0
-    elif trend.is_decreasing([r.ma13_price for r in records]):
+    elif trend.is_decreasing([r.ma55_price for r in records]):
         return 0.0
     else:
         return 0.5
