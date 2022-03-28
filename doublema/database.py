@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import csv
+import os
 import shutil
 
 
@@ -10,12 +11,12 @@ class Price:
 
 class Record:
     def __init__(self, date, k_price=None, ma13_price=None, ma55_price=None, crypto_balance=None, usdt_balance=None):
-        self.date = self.__parse_date(date)
-        self.k_price = self.__parse_price(k_price)
-        self.ma13_price = self.__parse_price(ma13_price)
-        self.ma55_price = self.__parse_price(ma55_price)
-        self.crypto_balance = self.__parse_balance(crypto_balance)
-        self.usdt_balance = self.__parse_balance(usdt_balance)
+        self.date = date
+        self.k_price = k_price
+        self.ma13_price = ma13_price
+        self.ma55_price = ma55_price
+        self.crypto_balance = crypto_balance
+        self.usdt_balance = usdt_balance
 
     def update(self, other):
         # won't modify date
@@ -29,24 +30,6 @@ class Record:
             self.crypto_balance = other.crypto_balance
         if other.usdt_balance is not None:
             self.usdt_balance = other.usdt_balance
-
-    @staticmethod
-    def __parse_price(field: str):
-        if field is None:
-            return None
-        else:
-            return float(field)
-
-    @staticmethod
-    def __parse_balance(field: str):
-        if field is None:
-            return None
-        else:
-            return float(field)
-
-    @staticmethod
-    def __parse_date(d: str):
-        return d
 
 
 class RecordExistsError(Exception):
@@ -128,24 +111,60 @@ def line_to_record(fields) -> Record:
     if len(fields) != 6:
         raise Exception("invalid fields {}, length should be 6".format(fields))
     r = Record(
-        date=fields[0],
-        k_price=fields[1],
-        ma13_price=fields[2],
-        ma55_price=fields[3],
-        crypto_balance=fields[4],
-        usdt_balance=fields[5],
+        date=parse_date(fields[0]),
+        k_price=parse_price(fields[1]),
+        ma13_price=parse_price(fields[2]),
+        ma55_price=parse_price(fields[3]),
+        crypto_balance=parse_balance(fields[4]),
+        usdt_balance=parse_balance(fields[5]),
     )
     return r
 
 
+def parse_price(field: str):
+    if field is None or len(field) == 0:
+        return None
+    else:
+        return float(field)
+
+
+def put_price(value: float):
+    if value is None:
+        return ''
+    else:
+        return str(value)
+
+
+def parse_balance(field: str):
+    if field is None or len(field) == 0:
+        return None
+    else:
+        return float(field)
+
+
+def put_balance(value: float):
+    if value is None:
+        return ''
+    else:
+        return str(value)
+
+
+def parse_date(d: str):
+    return d
+
+
+def put_date(value: str):
+    return str(value)
+
+
 def record_to_line(r: Record):
     return [
-        str(r.date),
-        str(r.k_price),
-        str(r.ma13_price),
-        str(r.ma55_price),
-        str(r.crypto_balance),
-        str(r.usdt_balance),
+        put_date(r.date),
+        put_price(r.k_price),
+        put_price(r.ma13_price),
+        put_price(r.ma55_price),
+        put_balance(r.crypto_balance),
+        put_balance(r.usdt_balance),
     ]
 
 
@@ -157,5 +176,7 @@ def save(db: Database):
         csv_writer = csv.writer(f)
         for r in db.records():
             csv_writer.writerow(record_to_line(r))
-    shutil.move(file_name, bak_file_name)
-    shutil.move(tmp_file_name, file_name)
+    if os.path.exists(file_name):
+        shutil.move(file_name, bak_file_name)
+    if os.path.exists(tmp_file_name):
+        shutil.move(tmp_file_name, file_name)
