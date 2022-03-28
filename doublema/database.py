@@ -3,7 +3,7 @@ import csv
 import os
 import shutil
 
-import display
+from doublema import display
 
 
 class Price:
