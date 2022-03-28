@@ -25,13 +25,30 @@ class Trade:
             raise Exception(
                 "Invalid trade parameter: price={}, crypto_diff={}, usdt_diff={}".format(price, crypto_diff, usdt_diff))
 
-    def __str__(self):
+    def __dict__(self):
+        return {
+            "op": self.get_operation(),
+            self._crypto_name: self.diff_to_str(self._crypto_diff),
+            "usdt": self.diff_to_str(self._usdt_diff),
+            "price": self._price,
+        }
+
+    def get_operation(self):
         if abs(self._usdt_diff) < 0.001:
-            return "Do nothing."
-        if self._usdt_diff < 0:
-            return "SELL {} {} (price= {}).".format(-self._crypto_diff, self._crypto_name, self._price)
+            return "nothing"
+        elif self._usdt_diff > 0:
+            return "sell"
         else:
-            return "BUY {} with {} USDT (price= {}).".format(-self._crypto_name, -self._usdt_diff, self._price)
+            return "buy"
+
+    @staticmethod
+    def diff_to_str(diff: float):
+        if diff < 0:
+            return str(diff)
+        elif diff > 0:
+            return "+" + str(diff)
+        else:
+            return "0"
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -95,7 +112,7 @@ class Strategy:
             return 0.5
 
     @staticmethod
-    def advice_trade(account: Account, score: float, price: float) -> Trade:
+    def get_advice_trade(account: Account, score: float, price: float) -> Trade:
         total_usdt = account.crypto_balance * price + account.usdt_balance
         new_account = Account(
             crypto_name=account.crypto_name,

@@ -87,12 +87,19 @@ class Advice(Command):
                 baseline_date = r.date
                 baseline_crypto = r.crypto_balance
                 baseline_usdt = r.usdt_balance
-        print("[ baseline ]")
-        print("date:", baseline_date)
-        print("crypto:", baseline_crypto)
-        print("usdt:", baseline_usdt)
-        today_date = self._db.records()[-1].date
+        print("[ {} ] crypto: {}, usdt: {}".format(baseline_date, baseline_crypto, baseline_usdt))
+        baseline_account = strategy.Account(
+            crypto_name=self._db.crypto_name(),
+            crypto_balance=baseline_crypto,
+            usdt_balance=baseline_usdt,
+        )
+        today_record = self._db.records()[-1]
         today_score = self._strategy.get_score(self._db.records())
-        print("[ today advice ]")
-        print("date:", today_date)
-        print("score:", today_score)
+        print("[ {} ] score: {}".format(today_record.date, today_score))
+        trade = self._strategy.get_advice_trade(
+            account=baseline_account,
+            score=today_score,
+            price=today_record.k_price,
+        )
+        print(" ---ADVICE--- ")
+        display.display([trade.__dict__(), ])

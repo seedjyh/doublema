@@ -14,7 +14,7 @@ class TestStrategy:
         (Account('btc', 50.0, 0.0), 0.0, 20.0, Trade('btc', 20.0, -50.0, 1000.0)),
     ])
     def test_advice_trade(self, account, score, price, trade):
-        assert Strategy().advice_trade(
+        assert Strategy().get_advice_trade(
             account=account,
             score=score,
             price=price,
