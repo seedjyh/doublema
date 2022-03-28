@@ -5,6 +5,8 @@ import shutil
 
 from doublema import display
 
+db_root_path = ".db"
+
 
 class Price:
     def __init__(self, field: str):
@@ -100,7 +102,7 @@ def load(crypto_name) -> Database:
     :return:
     """
     db = Database(crypto_name=crypto_name)
-    file_name = get_file_name(crypto_name=crypto_name)
+    file_name = make_file_path(db_root_path, get_file_name(crypto_name=crypto_name))
     try:
         with open(file_name, newline='\r\n') as f:
             csv_reader = csv.reader(f)
@@ -180,17 +182,27 @@ def record_to_line(r: Record):
 
 
 def save(db: Database):
-    file_name = get_file_name(crypto_name=db.crypto_name())
-    tmp_file_name = file_name + ".tmp"
-    bak_file_name = file_name + ".bak"
-    with open(tmp_file_name, "w") as f:
+    assure_directory(db_root_path)
+    file_path = make_file_path(db_root_path, get_file_name(crypto_name=db.crypto_name()))
+    tmp_file_path = file_path + ".tmp"
+    bak_file_path = file_path + ".bak"
+    with open(tmp_file_path, "w") as f:
         csv_writer = csv.writer(f)
         for r in db.records():
             csv_writer.writerow(record_to_line(r))
-    if os.path.exists(file_name):
-        shutil.move(file_name, bak_file_name)
-    if os.path.exists(tmp_file_name):
-        shutil.move(tmp_file_name, file_name)
+    if os.path.exists(file_path):
+        shutil.move(file_path, bak_file_path)
+    if os.path.exists(tmp_file_path):
+        shutil.move(tmp_file_path, file_path)
+
+
+def assure_directory(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+
+def make_file_path(path, file_name):
+    return os.path.join(path, file_name)
 
 #
 # def display(db: Database):
