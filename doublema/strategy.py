@@ -27,19 +27,19 @@ class Trade:
 
     def __dict__(self):
         return {
+            "name": self._crypto_name,
             "op": self.get_operation(),
-            self._crypto_name: self.diff_to_str(self._crypto_diff),
+            "crypto": self.diff_to_str(self._crypto_diff),
             "usdt": self.diff_to_str(self._usdt_diff),
-            "price": self._price,
         }
 
     def get_operation(self):
         if abs(self._usdt_diff) < 0.001:
-            return "nothing"
-        elif self._usdt_diff > 0:
-            return "sell"
+            return "---"
+        if self._usdt_diff > 0:
+            return "SELL"
         else:
-            return "buy"
+            return "BUY"
 
     @staticmethod
     def diff_to_str(diff: float):
