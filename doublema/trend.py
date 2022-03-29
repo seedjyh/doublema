@@ -5,11 +5,11 @@ class NoEnoughDataError(Exception):
 
 
 def larger(a: float, b: float) -> bool:
-    return a * 0.999 > b
+    return a * 0.9 > b
 
 
 def less(a: float, b: float) -> bool:
-    return a * 1.001 < b
+    return a < b * 0.9
 
 
 def is_increasing(values):
