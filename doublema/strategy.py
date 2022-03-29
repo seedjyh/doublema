@@ -51,7 +51,7 @@ class Trade:
             return "0"
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        return self.__dict__() == other.__dict__()
 
 
 class Strategy:
