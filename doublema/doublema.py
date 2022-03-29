@@ -26,8 +26,8 @@ def get_options(argv) -> Options:
     opt_define = [
         ("d:", "date="),
         ("k:", "k-price="),
-        ("", "ma13-price="),
-        ("", "ma55-price="),
+        ("m:", "ma13-price="),
+        ("M:", "ma55-price="),
         ("c:", "crypto-balance="),
         ("u:", "usdt-balance="),
     ]
