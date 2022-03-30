@@ -6,6 +6,10 @@ database 预先规定了一个key作为主键。不允许有重复主键出现�
 
 本模块不包含文件读写。
 
+所有已添加的记录都包含所有的fields。如果insert的时候没有带上，则会填空串。
+
+所有fields都必须是字符串类型。不能是None，不能是float。
+
 """
 
 
@@ -26,6 +30,13 @@ class NoSuchPrimaryKey(Exception):
 class NoPrimaryKeyInValues(Exception):
     """
     参数里没有目标主键
+    """
+    pass
+
+
+class InvalidValueType(Exception):
+    """
+    数据值不是字符串
     """
     pass
 
@@ -71,6 +82,8 @@ class Database:
         for k in self._fields:
             r[k] = ""
         for k, v in value.items():
+            if type(v) is not str:
+                raise InvalidValueType
             if k in self._fields:
                 r[k] = v
         self._data[primary_key_value] = r
@@ -82,5 +95,7 @@ class Database:
         if self._data.get(primary_key_value) is None:
             raise NoSuchPrimaryKey
         for k, v in values.items():
+            if type(v) is not str:
+                raise InvalidValueType
             if k in self._fields:
                 self._data[primary_key_value][k] = v

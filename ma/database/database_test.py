@@ -53,6 +53,15 @@ class TestDatabase:
         assert res[0]["date"] == "2022-03-27"
         assert res[0].get("price") is None
 
+    def test_insert_with_invalid_value_type(self):
+        db = database.Database(
+            name="btc",
+            primary_key="date",
+            fields=["date", "usdt_balance"],
+        )
+        with pytest.raises(database.InvalidValueType) as e:
+            db.insert({"date": "2022-03-27", "usdt_balance": 1.23})
+
     def test_update_partial_fields(self):
         db = database.Database(
             name="btc",
