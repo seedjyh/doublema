@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
+import pytest
+
 from ma.database import database, csvio
+
+
+def test_load_no_such_database():
+    with pytest.raises(FileNotFoundError) as e:
+        csvio.load("random12345")
 
 
 def test_save_empty_database():
