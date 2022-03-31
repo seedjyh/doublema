@@ -3,7 +3,7 @@ import datetime
 import math
 
 from ma.kline import KLineChart
-from ma.command import KLineRecord
+from ma.model import KLineRecord
 
 
 class TestKLineChart:

@@ -78,3 +78,4 @@ if __name__ == "__main__":
             raise Exception("unknown operation:" + opt.operation)
     except Exception as e:
         print("ERR:", e)
+        raise

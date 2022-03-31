@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 
-from ma import command
+from ma import command, model
 from ma.evaluator import Evaluator
 
 
@@ -26,8 +26,8 @@ class TestEvaluator:
     def test_get_scores(self):
         eval = Evaluator()
         raw_records = [
-            command.KLineRecord(timestamp=datetime.datetime(year=2022, month=1, day=1), price=1.0),
-            command.KLineRecord(timestamp=datetime.datetime(year=2022, month=1, day=2), price=2.0),
+            model.KLineRecord(timestamp=datetime.datetime(year=2022, month=1, day=1), price=1.0),
+            model.KLineRecord(timestamp=datetime.datetime(year=2022, month=1, day=2), price=2.0),
         ]
         k_line_chart = MockKLineChart(records=raw_records)
         scored_records = eval.get_scores(k_line_chart=k_line_chart)

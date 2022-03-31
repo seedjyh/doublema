@@ -4,17 +4,8 @@
 """
 import abc
 import datetime
-
-
-class KLineRecord:
-    def __init__(self, timestamp: datetime.datetime, price: float):
-        """
-        一条K线记录。
-        :param timestamp: 时间戳，具体精确视情况而定。
-        :param price: 该时间戳的收盘价。
-        """
-        self.timestamp = timestamp
-        self.price = price
+import math
+from ma.model import Position
 
 
 class KLineChart:
@@ -55,48 +46,6 @@ class KLineChart:
         :return:
         """
         pass
-
-
-class Position:
-    """
-    仓位状态。
-    """
-
-    def __init__(self, name: str, crypto: float, usdt: float):
-        """
-        :param name: 仓位名称，通常是加密货币名，如 ”btc“
-        :param crypto: 加密货币的余额。
-        :param usdt: 用于该加密火币交易的usdt余额。
-        """
-        self.name = name
-        self.crypto = crypto
-        self.usdt = usdt
-
-
-class Trade:
-    def __init__(self, name: str, price: float, crypto: float):
-        """
-        交易参数
-        :param name: 仓位名称，通常是加密货币名，如 ”btc“
-        :param price: 交易时加密货币相对于 usdt 的价格。
-        :param crypto: 被交易的加密货币的数量。
-        """
-        self.name = name
-        self.price = price
-        self.crypto = crypto
-
-
-class TradeViewRecord:
-    def __init__(self, timestamp: datetime.datetime, ma: {}, score: float):
-        """
-
-        :param timestamp: 时间戳。
-        :param ma: 均线数据 dict。其中key是均线范围，比如1表示timestamp所在K柱的收盘价，3表示三日均线。
-        :param score: 从 0.0 ~ 1.0 表示建议仓位。其中 0.0 表示建议空仓， 1.0 表示建议满仓。
-        """
-        self.timestamp = timestamp
-        self.ma = ma
-        self.score = score
 
 
 class Evaluator:
@@ -201,7 +150,32 @@ def playback(k_line_chart: KLineChart, evaluator: Evaluator, displayer: Displaye
     :return:
     """
     trade_view_records = evaluator.get_scores(k_line_chart=k_line_chart)
-    raise "TODO"
+    position = Position(name="theCRYPTO", crypto=0.0, usdt=1000.0)
+    trades = []
+    fields = ["timestamp", "price", "score", "crypto", "usdt", "total"]
+    lines = []
+    for i in range(len(trade_view_records)):
+        now_price = trade_view_records[i].ma[1]
+        for trade in trades:
+            if trade.ok(now_price):
+                position = trade.do(position, now_price)
+
+        trades.clear()
+        for trade in evaluator.get_advice(k_line_chart=k_line_chart, timestamp=trade_view_records[i].timestamp,
+                                          position=position):
+            if math.isclose(trade.price, now_price, rel_tol=1e-5):
+                position = trade.do(position)
+            else:
+                trades.append(trade)
+        lines.append({
+            "timestamp": trade_view_records[i].timestamp,
+            "price": now_price,
+            "score": trade_view_records[i].score,
+            "crypto": position.crypto,
+            "usdt": position.usdt,
+            "total": position.total(now_price)
+        })
+    displayer.display(fields, lines)
 
 
 def find_advice(k_line_chart: KLineChart, evaluator: Evaluator, position: Position, displayer: Displayer):

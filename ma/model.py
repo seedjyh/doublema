@@ -1,0 +1,87 @@
+# -*- coding: utf-8 -*-
+import datetime
+
+
+class KLineRecord:
+    def __init__(self, timestamp: datetime.datetime, price: float):
+        """
+        一条K线记录。
+        :param timestamp: 时间戳，具体精确视情况而定。
+        :param price: 该时间戳的收盘价。
+        """
+        self.timestamp = timestamp
+        self.price = price
+
+
+class Position:
+    """
+    仓位状态。
+    """
+
+    def __init__(self, name: str, crypto: float, usdt: float):
+        """
+        :param name: 仓位名称，通常是加密货币名，如 ”btc“
+        :param crypto: 加密货币的余额。
+        :param usdt: 用于该加密火币交易的usdt余额。
+        """
+        self.name = name
+        self.crypto = crypto
+        self.usdt = usdt
+
+    def assert_valid(self):
+        if self.crypto < -1e-5:
+            raise Exception("invalid position, crypto={}".format(self.crypto))
+        if self.usdt < -1e-5:
+            raise Exception("invalid position, usdt={}".format(self.usdt))
+
+    def total(self, price: float):
+        return self.usdt + self.crypto * price
+
+    def score(self, price: float):
+        return 1.0 - self.usdt / self.total(price)
+
+
+class Trade:
+    def __init__(self, name: str, price: float, crypto: float):
+        """
+        交易参数
+        :param name: 仓位名称，通常是加密货币名，如 ”btc“
+        :param price: 交易时加密货币相对于 usdt 的价格。
+        :param crypto: 被交易的加密货币的数量。
+        """
+        self.name = name
+        self.price = price
+        self.crypto = crypto
+
+    def ok(self, price):
+        if self.crypto < 0.0:  # sell
+            return self.price < price - 1e-5
+        else:
+            return self.price > price + 1e-5
+
+    def do(self, raw: Position, price=None) -> Position:
+        if price is None:
+            price = self.price
+        amount = self.crypto
+        if amount > 0 and amount * price > raw.usdt:  # BUY
+            amount = raw.usdt / price
+        res = Position(
+            name=raw.name,
+            crypto=raw.crypto + amount,
+            usdt=raw.usdt - price * amount,
+        )
+        res.assert_valid()
+        return res
+
+
+class TradeViewRecord:
+    def __init__(self, timestamp: datetime.datetime, ma: {}, score: float):
+        """
+
+        :param timestamp: 时间戳。
+        :param ma: 均线数据 dict。其中key是均线范围，比如1表示timestamp所在K柱的收盘价，3表示三日均线。
+        :param score: 从 0.0 ~ 1.0 表示建议仓位。其中 0.0 表示建议空仓， 1.0 表示建议满仓。
+        """
+        self.timestamp = timestamp
+        self.ma = ma
+        self.score = score

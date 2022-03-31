@@ -11,7 +11,7 @@ import abc
 import datetime
 from copy import copy
 
-from ma import command
+from ma import command, model
 from ma.database import database, csvio
 
 
@@ -111,7 +111,7 @@ class KLineChart(command.KLineChart):
                 continue
             if until is not None and r.timestamp > until:
                 break
-            res.append(command.KLineRecord(timestamp=r.timestamp, price=r.price))
+            res.append(model.KLineRecord(timestamp=r.timestamp, price=r.price))
         return res
 
     def clear(self, reason: str):

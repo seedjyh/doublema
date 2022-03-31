@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 
-from ma import command
+from ma import command, model
 
 
 class MARecord:
@@ -19,7 +19,7 @@ class Evaluator(command.Evaluator):
         ma_records = self._get_ma_records(k_line_chart, since, until)
         res = []
         for i in range(len(ma_records)):
-            new_record = command.TradeViewRecord(
+            new_record = model.TradeViewRecord(
                 timestamp=ma_records[i].timestamp,
                 ma={**ma_records[i].ma},
                 score=self._evaluate_last_record_score(ma_records[:i + 1])
@@ -29,7 +29,21 @@ class Evaluator(command.Evaluator):
 
     def get_advice(self, k_line_chart: command.KLineChart, timestamp: datetime.datetime,
                    position: command.Position) -> []:
-        pass
+        res = []
+        trade_view_records = self.get_scores(k_line_chart=k_line_chart, until=timestamp)
+        if len(trade_view_records) == 0:
+            return []
+        last_record = trade_view_records[-1]
+        now_price = last_record.ma[1]
+        now_score = last_record.score
+        total_balance = position.total(price=now_price)
+        if now_score > position.score(price=now_price):  # BUY
+            buy_amount = total_balance * now_score / now_price - position.crypto
+            res.append(model.Trade(name=position.name, price=now_price, crypto=buy_amount)) # todo: 暂时直接成交，不挂单
+        else:  # SELL
+            sell_amount = position.crypto - total_balance * now_score / now_price
+            res.append(model.Trade(name=position.name, price=now_price, crypto=-sell_amount))  # todo: 暂时直接成交，不挂单
+        return res
 
     def _get_ma_records(self, k_line_chart: command.KLineChart, since=None, until=None) -> []:
         """
