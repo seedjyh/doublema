@@ -14,12 +14,10 @@ class Displayer:
         # display column name
         border_line = "+-" + "-+-".join(['-' * v for k, v in field2len.items()]) + "-+"
         print(border_line)
-        # print("| " + " | ".join([k.ljust(v) for k, v in field2len.items()]) + " |")
         print("| " + " | ".join([field.ljust(field2len[field]) for field in fields]) + " |")
         print(border_line)
         # display record fields
         for r in lines:
-            # print("| " + " | ".join([self.beautiful_column(r[k], v) for k, v in field2len.items()]) + " |")
             print("| " + " | ".join([self.beautiful_column(r[field], field2len[field]) for field in fields]) + " |")
         # display end line
         print("+-" + "-+-".join(['-' * v for k, v in field2len.items()]) + "-+")
@@ -28,6 +26,13 @@ class Displayer:
     def str_field(value):
         if value is None:
             return "NULL"
+        elif type(value) == float:
+            if value > 1e-6:
+                return "%.06f" % value
+            elif abs(value) < 1e-10:
+                return "0"
+            else:
+                return str(value)
         else:
             return str(value)
 
