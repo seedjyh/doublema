@@ -7,6 +7,7 @@
 所有读写操作都在内存中，但调用save可以刷到文件中。
 
 """
+import abc
 import datetime
 from copy import copy
 
@@ -14,23 +15,57 @@ from ma import command
 from ma.database import database, csvio
 
 
-class Record:
-    datetime_format = "%Y-%m-%d %H:%M:%S"
+class KLineSpan(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def strip(self, t: datetime.datetime) -> datetime.datetime:
+        pass
 
+    @abc.abstractmethod
+    def to_string(self, t: datetime.datetime) -> str:
+        pass
+
+    @abc.abstractmethod
+    def from_string(self, s: str) -> datetime.datetime:
+        pass
+
+
+class DaySpan(KLineSpan):
+    """
+    按照「天」为单位裁剪。
+    """
+
+    def __init__(self):
+        # self._format = "%Y-%m-%d %H:%M:%S.%f"
+        self._format = "%Y-%m-%d"
+
+    def strip(self, t: datetime.datetime) -> datetime.datetime:
+        return datetime.datetime(year=t.year, month=t.month, day=t.day)
+
+    def to_string(self, t: datetime.datetime) -> str:
+        return t.strftime(self._format)
+
+    def from_string(self, s: str) -> datetime.datetime:
+        return datetime.datetime.strptime(s, self._format)
+
+
+_span = DaySpan()
+
+
+class Record:
     def __init__(self, timestamp: datetime.datetime, price: float):
         self.timestamp = timestamp
         self.price = price
 
     def dict(self):
         return {
-            "timestamp": datetime.datetime.strftime(self.timestamp, self.datetime_format),
+            "timestamp": _span.to_string(self.timestamp),
             "price": str(self.price),
         }
 
     @staticmethod
     def from_dict(d: dict):
         return Record(
-            timestamp=datetime.datetime.strptime(d["timestamp"], Record.datetime_format),
+            timestamp=_span.from_string(d["timestamp"]),
             price=float(d["price"]),
         )
 
@@ -46,12 +81,14 @@ class KLineChart(command.KLineChart):
         self._records = self._load_records_from_db(name=name)
 
     def add_price(self, timestamp: datetime.datetime, price: float):
+        timestamp = _span.strip(timestamp)
         if self._exist(timestamp):
             raise Exception("try insert but already exist: timestamp={}".format(timestamp))
         self._records.append(Record(timestamp=timestamp, price=price))
         self._sort_records()
 
     def set_price(self, timestamp: datetime.datetime, price: float):
+        timestamp = _span.strip(timestamp)
         if not self._exist(timestamp):
             raise Exception("try update but not exist: timestamp={}".format(timestamp))
         for i in range(len(self._records)):
@@ -63,7 +100,26 @@ class KLineChart(command.KLineChart):
         返回command.Record列表。
         :return:
         """
-        return [command.KLineRecord(timestamp=r.timestamp, price=r.price) for r in self._records]
+        if since is not None:
+            since = _span.strip(since)
+        if until is not None:
+            until = _span.strip(until)
+        res = []
+        for r in self._records:
+            if since is not None and r.timestamp < since:
+                continue
+            if until is not None and r.timestamp > until:
+                break
+            res.append(command.KLineRecord(timestamp=r.timestamp, price=r.price))
+        return res
+
+    def clear(self, reason: str):
+        """
+        清空内存里的数据。随后调用save将导致原有数据全部丢失。所以仅用于测试时。
+        :param reason:
+        :return:
+        """
+        self._records.clear()
 
     def _sort_records(self):
         self._records.sort(key=lambda r: r.timestamp.timestamp())
