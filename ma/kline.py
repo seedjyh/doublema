@@ -10,41 +10,32 @@
 import datetime
 from copy import copy
 
+from ma import command
 from ma.database import database, csvio
 
 
 class Record:
-    def __init__(self, timestamp: datetime.datetime, closing: float):
+    datetime_format = "%Y-%m-%d %H:%M:%S"
+
+    def __init__(self, timestamp: datetime.datetime, price: float):
         self.timestamp = timestamp
-        self.closing = closing
-        self.ma = {}
+        self.price = price
 
     def dict(self):
         return {
-            "timestamp": str(self.timestamp),
-            "closing": str(self.closing),
+            "timestamp": datetime.datetime.strftime(self.timestamp, self.datetime_format),
+            "price": str(self.price),
         }
 
     @staticmethod
     def from_dict(d: dict):
         return Record(
-            timestamp=d["timestamp"],
-            closing=d["closing"],
+            timestamp=datetime.datetime.strptime(d["timestamp"], Record.datetime_format),
+            price=float(d["price"]),
         )
 
 
-class FullData:
-    """
-    包含0个或多个 MA 的数据。
-    """
-
-    def __init__(self, timestamp: datetime.datetime, closing: float, ma: {}):
-        self.timestamp = timestamp
-        self.closing = closing
-        self.ma = ma
-
-
-class KLineChart:
+class KLineChart(command.KLineChart):
     """
     创建时从文件中读取初始数据。
     所有读写操作都在内存中，但调用save可以刷到文件中。
@@ -54,44 +45,28 @@ class KLineChart:
         self._name = name
         self._records = self._load_records_from_db(name=name)
 
-    def save(self):
-        """
-        保存到文件里
-        :return:
-        """
-        self._save_records_to_db(self._name, self._records)
-
-    def add_closing(self, timestamp: datetime.datetime, closing: float):
+    def add_price(self, timestamp: datetime.datetime, price: float):
         if self._exist(timestamp):
             raise Exception("try insert but already exist: timestamp={}".format(timestamp))
-        self._records.append(Record(timestamp=timestamp, closing=closing))
+        self._records.append(Record(timestamp=timestamp, price=price))
         self._sort_records()
 
-    def set_closing(self, timestamp: datetime.datetime, closing: float):
+    def set_price(self, timestamp: datetime.datetime, price: float):
         if not self._exist(timestamp):
             raise Exception("try update but not exist: timestamp={}".format(timestamp))
         for i in range(len(self._records)):
             if self._records[i].timestamp == timestamp:
-                self._records[i].closing = closing
+                self._records[i].price = price
 
-    def get_records(self, ma_parameter: []) -> []:
+    def get_records(self, since=None, until=None) -> []:
         """
-        返回带有ma值的Record列表。
-        统计ma的时候不考虑timestamp是否连续。
+        返回command.Record列表。
         :return:
         """
-        records = [copy(r) for r in self._records]
-        for p in ma_parameter:
-            closing_sum = 0.0
-            for i in range(len(records)):
-                closing_sum += records[i].closing
-                if i - p >= 0:
-                    closing_sum -= records[i - p].closing
-                records[i].ma[p] = closing_sum / min(i + 1, p)
-        return records
+        return [command.KLineRecord(timestamp=r.timestamp, price=r.price) for r in self._records]
 
     def _sort_records(self):
-        self._records.sort(key=lambda r: r.timestamp)
+        self._records.sort(key=lambda r: r.timestamp.timestamp())
 
     def _exist(self, timestamp: datetime.datetime) -> bool:
         for r in self._records:
@@ -99,6 +74,13 @@ class KLineChart:
                 return True
         else:
             return False
+
+    def save(self):
+        """
+        保存到文件里
+        :return:
+        """
+        self._save_records_to_db(name=self._name, records=self._records)
 
     @staticmethod
     def _load_records_from_db(name) -> []:
@@ -113,11 +95,11 @@ class KLineChart:
         return records
 
     @staticmethod
-    def _save_records_to_db(self, name, records: []):
+    def _save_records_to_db(name, records: []):
         db = database.Database(
             name=name,
             primary_key="timestamp",
-            fields=["timestamp", "closing"]
+            fields=["timestamp", "price"]
         )
         for r in records:
             db.insert(r.dict())

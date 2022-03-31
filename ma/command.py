@@ -5,48 +5,56 @@
 import abc
 import datetime
 
-from ma import display
+from ma import displayer
 
 
 class KLineRecord:
-    def __init__(self, timestamp: datetime.datetime, closing: float):
+    def __init__(self, timestamp: datetime.datetime, price: float):
         """
         一条K线记录。
         :param timestamp: 时间戳，具体精确视情况而定。
-        :param closing: 该时间戳的收盘价。
+        :param price: 该时间戳的收盘价。
         """
         self.timestamp = timestamp
-        self.closing = closing
+        self.price = price
 
 
 class KLineChart:
     @abc.abstractmethod
-    def add_closing(self, timestamp: datetime.datetime, closing: float):
+    def add_price(self, timestamp: datetime.datetime, price: float):
         """
         新增某timestamp收盘价。该timestamp必须不存在。
         :param timestamp: 时间戳
-        :param closing: 收盘价
+        :param price: 收盘价
         :return: 无
         """
         pass
 
     @abc.abstractmethod
-    def set_closing(self, timestamp: datetime.datetime, closing: float):
+    def set_price(self, timestamp: datetime.datetime, price: float):
         """
         修改某timestamp的收盘价。该timestamp必须存在。
         :param timestamp: 时间戳
-        :param closing: 收盘价
+        :param price: 收盘价
         :return: 无
         """
         pass
 
     @abc.abstractmethod
-    def get_records(self, since=None, until=None) -> []:
+    def get_records(self, since: datetime, until: datetime) -> []:
         """
         获取某timestamp范围内的K线图。
         :param since: 开始timestamp。
         :param until: 结束timestamp。
         :return: 一个 KLineRecord 的列表，按照 timestamp 排序。
+        """
+        pass
+
+    @abc.abstractmethod
+    def save(self):
+        """
+        持久化。
+        :return:
         """
         pass
 
@@ -129,12 +137,14 @@ class Displayer:
         pass
 
 
-def add_closing(k_line_chart: KLineChart, timestamp: datetime.datetime, closing: float):
-    k_line_chart.add_closing(timestamp, closing)
+def add_price(k_line_chart: KLineChart, timestamp: datetime.datetime, price: float):
+    k_line_chart.add_price(timestamp, price)
+    k_line_chart.save()
 
 
-def set_closing(k_line_chart: KLineChart, timestamp: datetime.datetime, closing: float):
-    k_line_chart.set_closing(timestamp, closing)
+def set_price(k_line_chart: KLineChart, timestamp: datetime.datetime, price: float):
+    k_line_chart.set_price(timestamp, price)
+    k_line_chart.save()
 
 
 def list_scores(k_line_chart: KLineChart, evaluator: Evaluator, displayer: Displayer):

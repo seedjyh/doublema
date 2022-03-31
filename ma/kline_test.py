@@ -2,28 +2,21 @@
 import datetime
 import math
 
-from ma.kline import KLineChart, Record
+from ma.kline import KLineChart
+from ma.command import KLineRecord
 
 
 class TestKLineChart:
-    def test_add_closing(self):
+    def test_add_price(self):
         ch = KLineChart(name="test.KLineChart.crypto")
-        ch.add_closing(timestamp=datetime.datetime(2022, 3, 4), closing=4.56)
-        ch.add_closing(timestamp=datetime.datetime(2022, 1, 2), closing=1.23)
+        ch.add_price(timestamp=datetime.datetime(2022, 3, 4), price=4.56)
+        ch.add_price(timestamp=datetime.datetime(2022, 1, 2), price=1.23)
 
     def test_get_records(self):
         ch = KLineChart(name="test.KLineChart.crypto")
-        ch.add_closing(timestamp=datetime.datetime(2022, 3, 4), closing=4.56)
-        ch.add_closing(timestamp=datetime.datetime(2022, 1, 2), closing=1.23)
-        records = ch.get_records(ma_parameter=[1, 2, 3])
+        ch.add_price(timestamp=datetime.datetime(2022, 3, 4), price=4.56)
+        ch.add_price(timestamp=datetime.datetime(2022, 1, 2), price=1.23)
+        records = ch.get_records()
         assert len(records) == 2
-        assert records[0].timestamp == datetime.datetime(2022, 1, 2)
-        assert records[0].closing == 1.23
-        assert math.isclose(records[0].ma[1], 1.23, rel_tol=1e-5)
-        assert math.isclose(records[0].ma[2], 1.23, rel_tol=1e-5)
-        assert math.isclose(records[0].ma[3], 1.23, rel_tol=1e-5)
-        assert records[1].timestamp == datetime.datetime(2022, 3, 4)
-        assert records[1].closing == 4.56
-        assert math.isclose(records[1].ma[1], 4.56, rel_tol=1e-5)
-        assert math.isclose(records[1].ma[2], 2.895, rel_tol=1e-5)
-        assert math.isclose(records[1].ma[3], 2.895, rel_tol=1e-5)
+        assert records[0].__dict__ == KLineRecord(timestamp=datetime.datetime(2022, 1, 2), price=1.23).__dict__
+        assert records[1].__dict__ == KLineRecord(timestamp=datetime.datetime(2022, 3, 4), price=4.56).__dict__
