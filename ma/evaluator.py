@@ -12,7 +12,7 @@ class MARecord:
 
 class Evaluator(command.Evaluator):
     def __init__(self):
-        self._ma_parameters = [1, 7, 13, 55]
+        self._ma_parameters = [1, 5, 13, 55]
         self._ma_parameters.sort()
 
     def get_scores(self, k_line_chart: command.KLineChart, since=None, until=None) -> []:
