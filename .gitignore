@@ -1,4 +1,8 @@
 /.idea
 /doublema/__pycache__/*.pyc
-/doublema/*.csv
+*.csv
+*.tmp
+*.bak
 /.db
+/ma/__pycache__/*.pyc
+/ma/database/__pycache__/*.pyc

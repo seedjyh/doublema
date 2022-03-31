@@ -107,7 +107,7 @@ class Evaluator:
         :param k_line_chart: K线图。
         :param since: 开始timestamp。
         :param until: 结束timestamp。
-        :return: 一个TradeViewRecord的列表。
+        :return: 一个 TradeViewRecord 的列表。
         """
         pass
 
@@ -178,10 +178,7 @@ def list_scores(k_line_chart: KLineChart, evaluator: Evaluator, displayer: Displ
         if fields is None:
             fields = ["timestamp", ]
             for x in ma_p_list:
-                if x == 1:
-                    field_name = "closing"
-                else:
-                    field_name = "ma{}" % x
+                field_name = "ma{}".format(x)
                 ma2fields[x] = field_name
                 fields.append(field_name)
             fields.append("score")
@@ -192,7 +189,7 @@ def list_scores(k_line_chart: KLineChart, evaluator: Evaluator, displayer: Displ
         for k, v in r.ma.items():
             new_line[ma2fields[k]] = v
         lines.append(new_line)
-    displayer.display(lines)
+    displayer.display(fields, lines)
 
 
 def playback(k_line_chart: KLineChart, evaluator: Evaluator, displayer: Displayer):

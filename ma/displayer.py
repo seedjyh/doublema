@@ -14,11 +14,13 @@ class Displayer:
         # display column name
         border_line = "+-" + "-+-".join(['-' * v for k, v in field2len.items()]) + "-+"
         print(border_line)
-        print("| " + " | ".join([k.ljust(v) for k, v in field2len.items()]) + " |")
+        # print("| " + " | ".join([k.ljust(v) for k, v in field2len.items()]) + " |")
+        print("| " + " | ".join([field.ljust(field2len[field]) for field in fields]) + " |")
         print(border_line)
         # display record fields
         for r in lines:
-            print("| " + " | ".join([self.beautiful_column(r[k], v) for k, v in field2len.items()]) + " |")
+            # print("| " + " | ".join([self.beautiful_column(r[k], v) for k, v in field2len.items()]) + " |")
+            print("| " + " | ".join([self.beautiful_column(r[field], field2len[field]) for field in fields]) + " |")
         # display end line
         print("+-" + "-+-".join(['-' * v for k, v in field2len.items()]) + "-+")
 

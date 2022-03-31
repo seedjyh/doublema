@@ -104,6 +104,7 @@ class KLineChart(command.KLineChart):
             since = _span.strip(since)
         if until is not None:
             until = _span.strip(until)
+        # todo: 检查时间戳记录有缺失的情况
         res = []
         for r in self._records:
             if since is not None and r.timestamp < since:
