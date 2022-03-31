@@ -190,14 +190,15 @@ def find_advice(k_line_chart: KLineChart, evaluator: Evaluator, position: Positi
     advised_trades = evaluator.get_advice(k_line_chart=k_line_chart, timestamp=datetime.datetime.today(),
                                           position=position)
     lines = []  # 最终显示的列内容
-    fields = ["id", "operation", "name", "price", "amount"]  # 最终显示的列名列表，从左到右排序
+    fields = ["id", "operation", "name", "price", "amount", "usdt"]  # 最终显示的列名列表，从左到右排序
     for trade in advised_trades:
         new_line = {
             "id": len(lines) + 1,
             "operation": trade.operation(),
             "name": trade.name,
-            "price": "{} usdt/{}".format(trade.price, trade.name),
-            "crypto": "{} {}".format(trade.crypto, trade.name)
+            "price": "{:.8f} usdt/{}".format(trade.price, trade.name),
+            "amount": "{:+.8f} {}".format(trade.crypto, trade.name),
+            "usdt": "{:+.8f} usdt".format(-trade.crypto * trade.price),
         }
         lines.append(new_line)
     displayer.display(fields=fields, lines=lines)

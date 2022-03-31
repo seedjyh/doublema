@@ -24,9 +24,9 @@ class Position:
         :param crypto: 加密货币的余额。
         :param usdt: 用于该加密火币交易的usdt余额。
         """
-        self.name = name
-        self.crypto = crypto
-        self.usdt = usdt
+        self.name = str(name)
+        self.crypto = float(crypto)
+        self.usdt = float(usdt)
 
     def assert_valid(self):
         if self.crypto < -1e-5:
@@ -50,8 +50,10 @@ class Trade:
         :param crypto: 被交易的加密货币的数量。
         """
         self.name = name
-        self.price = price
-        self.crypto = crypto
+        self.price = float(price)
+        self.crypto = float(crypto)
+        if abs(price * crypto) < 1e-3:
+            self.crypto = 0
 
     def ok(self, price):
         if self.crypto < 0.0:  # sell
@@ -72,6 +74,14 @@ class Trade:
         )
         res.assert_valid()
         return res
+
+    def operation(self) -> str:
+        if abs(self.price * self.crypto) < 1e-2:
+            return "--"
+        elif self.crypto > 0:
+            return "buy"
+        else:
+            return "sell"
 
 
 class TradeViewRecord:

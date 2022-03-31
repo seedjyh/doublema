@@ -13,6 +13,7 @@ class MARecord:
 class Evaluator(command.Evaluator):
     def __init__(self):
         self._ma_parameters = [1, 5, 13, 55]
+        # self._ma_parameters = [1, 3, 8, 21, 55]
         self._ma_parameters.sort()
 
     def get_scores(self, k_line_chart: command.KLineChart, since=None, until=None) -> []:
@@ -39,7 +40,7 @@ class Evaluator(command.Evaluator):
         total_balance = position.total(price=now_price)
         if now_score > position.score(price=now_price):  # BUY
             buy_amount = total_balance * now_score / now_price - position.crypto
-            res.append(model.Trade(name=position.name, price=now_price, crypto=buy_amount)) # todo: 暂时直接成交，不挂单
+            res.append(model.Trade(name=position.name, price=now_price, crypto=buy_amount))  # todo: 暂时直接成交，不挂单
         else:  # SELL
             sell_amount = position.crypto - total_balance * now_score / now_price
             res.append(model.Trade(name=position.name, price=now_price, crypto=-sell_amount))  # todo: 暂时直接成交，不挂单
