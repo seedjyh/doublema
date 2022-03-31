@@ -5,8 +5,6 @@
 import abc
 import datetime
 
-from ma import displayer
-
 
 class KLineRecord:
     def __init__(self, timestamp: datetime.datetime, price: float):
@@ -137,19 +135,42 @@ class Displayer:
         pass
 
 
+class InvalidParameter(Exception):
+    def __init__(self, name: str, value):
+        super(InvalidParameter, self).__init__("Invalid Parameter, name={}, value={}".format(name, value))
+        self.name = name
+        self.value = value
+
+
 def add_price(k_line_chart: KLineChart, timestamp: datetime.datetime, price: float):
+    if timestamp is None:
+        raise InvalidParameter("timestamp", timestamp)
+    if price is None:
+        raise InvalidParameter("price", price)
     k_line_chart.add_price(timestamp, price)
     k_line_chart.save()
 
 
 def set_price(k_line_chart: KLineChart, timestamp: datetime.datetime, price: float):
+    if timestamp is None:
+        raise InvalidParameter("timestamp", timestamp)
+    if price is None:
+        raise InvalidParameter("price", price)
     k_line_chart.set_price(timestamp, price)
     k_line_chart.save()
 
 
-def list_scores(k_line_chart: KLineChart, evaluator: Evaluator, displayer: Displayer):
+def show_k_line(k_line_chart: KLineChart, displayer: Displayer):
+    fields = ["timestamp", "price"]  # 最终显示的列名列表，从左到右排序
     lines = []  # 最终显示的列内容
+    for r in k_line_chart.get_records():
+        lines.append({"timestamp": r.timestamp, "price": r.price})
+    displayer.display(fields, lines)
+
+
+def list_scores(k_line_chart: KLineChart, evaluator: Evaluator, displayer: Displayer):
     fields = None  # 最终显示的列名列表，从左到右排序
+    lines = []  # 最终显示的列内容
     ma2fields = {}  # 均线参数对应的列名
     for r in evaluator.get_scores(k_line_chart=k_line_chart):
         ma_p_list = [x for x in r.ma.keys()]

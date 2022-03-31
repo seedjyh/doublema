@@ -3,6 +3,7 @@
 程序入口。
 处理命令行参数，构建各模块的对象，组装后传入 command.py 的函数中。
 """
+import datetime
 import getopt
 import sys
 
@@ -41,13 +42,13 @@ def get_options(argv) -> Options:
     opts, args = getopt.getopt(argv[2:], short_opts, long_opts)
     for k, v in opts:
         if k in ("-d", "--datetime"):
-            options.datetime = v
+            options.datetime = datetime.datetime.strptime(v, "%Y-%m-%d")  # 暂时精确到天
         elif k in ("-p", "--price"):
-            options.price = v
+            options.price = float(v)
         elif k in ("-c", "--crypto"):
-            options.crypto_balance = v
+            options.crypto_balance = float(v)
         elif k in ("-u", "--usdt"):
-            options.usdt_balance = v
+            options.usdt_balance = float(v)
         else:
             raise Exception("unknown:" + k)
     return options
@@ -55,7 +56,7 @@ def get_options(argv) -> Options:
 
 if __name__ == "__main__":
     opt = get_options(sys.argv[1:])
-    k_line_chart = KLineChart()
+    k_line_chart = KLineChart(name=opt.crypto_name)
     evaluator = Evaluator()
     displayer = Displayer()
     try:
@@ -63,6 +64,8 @@ if __name__ == "__main__":
             command.add_price(k_line_chart=k_line_chart, timestamp=opt.datetime, price=opt.price)
         elif opt.operation == "set":
             command.set_price(k_line_chart=k_line_chart, timestamp=opt.datetime, price=opt.price)
+        elif opt.operation == "show":
+            command.show_k_line(k_line_chart=k_line_chart, displayer=displayer)
         elif opt.operation == "score":
             command.list_scores(k_line_chart=k_line_chart, evaluator=evaluator, displayer=displayer)
         elif opt.operation == "playback":
@@ -75,4 +78,3 @@ if __name__ == "__main__":
             raise Exception("unknown operation:" + opt.operation)
     except Exception as e:
         print("ERR:", e)
-        raise e
