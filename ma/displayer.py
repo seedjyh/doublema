@@ -5,7 +5,17 @@ class Displayer:
         pass
 
     def display(self, fields: [], lines: []):
-        field2len = {}
+        if len(lines) == 0:
+            print("Empty set")
+        else:
+            self._display_table(fields, lines)
+            if len(lines) == 1:
+                print("1 line in set")
+            else:
+                print("{} lines in set".format(len(lines)))
+
+    def _display_table(self, field_names: [], lines: []):
+        field2len = dict(zip(field_names, [len(name) for name in field_names]))
         for r in lines:
             for k, v in r.items():
                 if field2len.get(k) is None:
@@ -14,11 +24,12 @@ class Displayer:
         # display column name
         border_line = "+-" + "-+-".join(['-' * v for k, v in field2len.items()]) + "-+"
         print(border_line)
-        print("| " + " | ".join([field.ljust(field2len[field]) for field in fields]) + " |")
+        print("| " + " | ".join([field.ljust(field2len[field]) for field in field_names]) + " |")
         print(border_line)
         # display record fields
         for r in lines:
-            print("| " + " | ".join([self.beautiful_column(r[field], field2len[field]) for field in fields]) + " |")
+            print(
+                "| " + " | ".join([self.beautiful_column(r[field], field2len[field]) for field in field_names]) + " |")
         # display end line
         print("+-" + "-+-".join(['-' * v for k, v in field2len.items()]) + "-+")
 
