@@ -41,6 +41,12 @@ class Position:
         return 1.0 - self.usdt / self.total(price)
 
 
+class PositionRecord:
+    def __init__(self, timestamp: datetime.datetime, position: Position):
+        self.timestamp = timestamp
+        self.position = position
+
+
 class Trade:
     def __init__(self, name: str, price: float, crypto: float):
         """

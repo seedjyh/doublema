@@ -5,7 +5,8 @@
 import abc
 import datetime
 import math
-from ma.model import Position
+from ma.model import Position, PositionRecord
+from ma.position import PositionHistory
 
 
 class KLineChart:
@@ -201,4 +202,17 @@ def find_advice(k_line_chart: KLineChart, evaluator: Evaluator, position: Positi
             "usdt": "{:+.8f} usdt".format(-trade.crypto * trade.price),
         }
         lines.append(new_line)
+    displayer.display(fields=fields, lines=lines)
+
+
+def set_position(position_history: PositionHistory, record: PositionRecord, displayer: Displayer):
+    position_history.add_record(record=record)
+    position_history.save()
+    fields = ["timestamp", "name", "crypto", "usdt"]
+    lines = [{
+        "timestamp": record.timestamp,
+        "name": record.position.name,
+        "crypto": record.position.crypto,
+        "usdt": record.position.usdt,
+    } for record in position_history.get_records()]
     displayer.display(fields=fields, lines=lines)

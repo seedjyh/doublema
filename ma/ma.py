@@ -7,10 +7,10 @@ import datetime
 import getopt
 import sys
 
-from ma import command
+from ma import command, position
 from ma.kline import KLineChart
 from ma import command
-from ma import database
+from ma import model
 from ma.displayer import Displayer
 from ma.evaluator import Evaluator
 
@@ -59,6 +59,7 @@ if __name__ == "__main__":
     k_line_chart = KLineChart(name=opt.crypto_name)
     evaluator = Evaluator()
     displayer = Displayer()
+    position_history = position.PositionHistory(name=opt.crypto_name)
     try:
         if opt.operation == "add":
             command.add_price(k_line_chart=k_line_chart, timestamp=opt.datetime, price=opt.price)
@@ -72,8 +73,21 @@ if __name__ == "__main__":
             command.playback(k_line_chart=k_line_chart, evaluator=evaluator, displayer=displayer)
         elif opt.operation == "advice":
             command.find_advice(k_line_chart=k_line_chart, evaluator=evaluator,
-                                position=command.Position(name=opt.crypto_name, crypto=opt.crypto_balance,
-                                                          usdt=opt.usdt_balance), displayer=displayer)
+                                position=model.Position(name=opt.crypto_name, crypto=opt.crypto_balance,
+                                                        usdt=opt.usdt_balance), displayer=displayer)
+        elif opt.operation == "position":
+            command.set_position(
+                position_history=position_history,
+                record=model.PositionRecord(
+                    timestamp=datetime.datetime.now(),
+                    position=model.Position(
+                        name=opt.crypto_name,
+                        crypto=opt.crypto_balance,
+                        usdt=opt.usdt_balance,
+                    ),
+                ),
+                displayer=displayer,
+            )
         else:
             raise Exception("unknown operation:" + opt.operation)
     except Exception as e:

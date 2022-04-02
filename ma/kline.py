@@ -7,46 +7,12 @@
 所有读写操作都在内存中，但调用save可以刷到文件中。
 
 """
-import abc
+
 import datetime
-from copy import copy
 
 from ma import command, model
 from ma.database import database, csvio
-
-
-class KLineSpan(metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def strip(self, t: datetime.datetime) -> datetime.datetime:
-        pass
-
-    @abc.abstractmethod
-    def to_string(self, t: datetime.datetime) -> str:
-        pass
-
-    @abc.abstractmethod
-    def from_string(self, s: str) -> datetime.datetime:
-        pass
-
-
-class DaySpan(KLineSpan):
-    """
-    按照「天」为单位裁剪。
-    """
-
-    def __init__(self):
-        # self._format = "%Y-%m-%d %H:%M:%S.%f"
-        self._format = "%Y-%m-%d"
-
-    def strip(self, t: datetime.datetime) -> datetime.datetime:
-        return datetime.datetime(year=t.year, month=t.month, day=t.day)
-
-    def to_string(self, t: datetime.datetime) -> str:
-        return t.strftime(self._format)
-
-    def from_string(self, s: str) -> datetime.datetime:
-        return datetime.datetime.strptime(s, self._format)
-
+from ma.span import DaySpan
 
 _span = DaySpan()
 
@@ -97,7 +63,7 @@ class KLineChart(command.KLineChart):
 
     def get_records(self, since=None, until=None) -> []:
         """
-        返回command.Record列表。
+        返回 model.KLineRecord 列表。
         :return:
         """
         if since is not None:
