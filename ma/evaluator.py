@@ -12,7 +12,7 @@ class MARecord:
 
 class Evaluator(command.Evaluator):
     def __init__(self):
-        self._ma_parameters = [1, 5, 13, 55]
+        self._ma_parameters = [1, 5, 13, 34]
         # self._ma_parameters = [1, 3, 8, 21, 55]
         self._ma_parameters.sort()
 
