@@ -12,6 +12,7 @@ class MARecord:
 
 class Evaluator(command.Evaluator):
     def __init__(self):
+        # 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144
         self._ma_parameters = [1, 5, 13, 34]
         # self._ma_parameters = [1, 3, 8, 21, 55]
         self._ma_parameters.sort()
@@ -76,11 +77,13 @@ class Evaluator(command.Evaluator):
         :return: 评分 [0.0, 1.0]
         """
         last_record = ma_records[-1]
-        total = 0.0
-        hit = 0.0
-        for shorter in self._ma_parameters:
-            for longer in self._ma_parameters[self._ma_parameters.index(shorter) + 1:]:
-                total += 1
-                if last_record.ma[shorter] > last_record.ma[longer]:  # todo: 这里考虑引入 1e-3 的容错范围
+        assert len(self._ma_parameters) >= 2  # 包括收盘（ma1）在内，一共至少要有两条均线
+        total = len(self._ma_parameters) - 1
+        hit = 0
+        for i in range(len(self._ma_parameters)):
+            if i > 0:
+                if last_record.ma[self._ma_parameters[i - 1]] > last_record.ma[self._ma_parameters[i]]:
                     hit += 1
+                else:
+                    break
         return float(hit) / float(total)
