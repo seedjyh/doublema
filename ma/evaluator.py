@@ -2,6 +2,7 @@
 import datetime
 
 from ma import command, model
+from ma.candle import CandleChart
 
 
 class MARecord:
@@ -17,8 +18,8 @@ class Evaluator(command.Evaluator):
         # self._ma_parameters = [1, 3, 8, 21, 55]
         self._ma_parameters.sort()
 
-    def get_scores(self, k_line_chart: command.KLineChart, since=None, until=None) -> []:
-        ma_records = self._get_ma_records(k_line_chart, since, until)
+    def get_scores(self, candle_chart: CandleChart, since=None, until=None) -> []:
+        ma_records = self._get_ma_records(candle_chart, since, until)
         res = []
         for i in range(len(ma_records)):
             new_record = model.TradeViewRecord(
@@ -29,10 +30,10 @@ class Evaluator(command.Evaluator):
             res.append(new_record)
         return res
 
-    def get_advice(self, k_line_chart: command.KLineChart, timestamp: datetime.datetime,
+    def get_advice(self, candle_chart: CandleChart, timestamp: datetime.datetime,
                    position: command.Position) -> []:
         res = []
-        trade_view_records = self.get_scores(k_line_chart=k_line_chart, until=timestamp)
+        trade_view_records = self.get_scores(candle_chart=candle_chart, until=timestamp)
         if len(trade_view_records) == 0:
             return []
         last_record = trade_view_records[-1]
@@ -47,25 +48,25 @@ class Evaluator(command.Evaluator):
             res.append(model.Trade(name=position.name, price=now_price, crypto=-sell_amount))  # todo: 暂时直接成交，不挂单
         return res
 
-    def _get_ma_records(self, k_line_chart: command.KLineChart, since=None, until=None) -> []:
+    def _get_ma_records(self, candle_chart: CandleChart, since=None, until=None) -> []:
         """
         读取K线图，返回带有均线信息的记录。
-        :param k_line_chart: K线图。
+        :param candle_chart: K线图。
         :param since: 开始时间戳（含）
         :param until: 结束时间戳（含）
         :return: list of MARecord
         """
         res = []
-        raw_records = k_line_chart.get_records(since=since, until=until)
+        raw_records = candle_chart.query(since=since, until=until)
         sums = {}
         for p in self._ma_parameters:
             sums[p] = 0.0
         for i in range(len(raw_records)):
             new_record = MARecord(timestamp=raw_records[i].timestamp, ma={})
             for p in self._ma_parameters:
-                sums[p] += raw_records[i].price
+                sums[p] += raw_records[i].closing
                 if i - p >= 0:
-                    sums[p] -= raw_records[i - p].price
+                    sums[p] -= raw_records[i - p].closing
                 new_record.ma[p] = sums[p] / min(i + 1, p)
             res.append(new_record)
         return res

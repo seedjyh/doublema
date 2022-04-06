@@ -2,17 +2,10 @@
 import sqlite3
 from datetime import datetime
 
-
-class Candle:
-    def __init__(self, timestamp, opening, highest, lowest, closing):
-        self.timestamp = timestamp
-        self.opening = opening
-        self.highest = highest
-        self.lowest = lowest
-        self.closing = closing
+from ma import candle
 
 
-class CandleChart:
+class CandleChart(candle.CandleChart):
     def __init__(self, db_name: str, ccy: str):
         ccy = ccy.lower()
         self._conn = sqlite3.connect(db_name)
@@ -22,11 +15,12 @@ class CandleChart:
             self._create_table()
 
     def __del__(self):
+        self._conn.commit()
         self._conn.close()
 
-    def insert_one(self, c: Candle):
+    def insert_one(self, c: candle.Candle):
         cur = self._conn.cursor()
-        sql = "INSERT INTO {}(timestamp, opening, highest, lowest, closing) VALUES({},{},{},{},{})".format(
+        sql = "INSERT INTO {}(timestamp, opening, highest, lowest, closing) VALUES({},{},{},{},{});".format(
             self._table_name,
             '"' + self._timestamp_to_str(c.timestamp) + '"',
             c.opening,
@@ -55,9 +49,10 @@ class CandleChart:
         )
         sql += "order by timestamp"
         res = []
+        # print("query sql=", sql)
         for row in cur.execute(sql):
-            print("query row>", row)
-            res.append(Candle(
+            # print("query row>", row)
+            res.append(candle.Candle(
                 timestamp=self._str_to_timestamp(row[0]),
                 opening=row[1],
                 highest=row[2],
@@ -69,9 +64,9 @@ class CandleChart:
     def _table_exist(self):
         cur = self._conn.cursor()
         sql = "SELECT name FROM sqlite_master WHERE type='table' AND name='{}'".format(self._table_name)
-        print("table exist sql=", sql)
+        # print("table exist sql=", sql)
         for row in cur.execute(sql):
-            print("table exist row>", row)
+            # print("table exist row>", row)
             return True
         else:
             return False  # todo: check
@@ -80,7 +75,7 @@ class CandleChart:
         cur = self._conn.cursor()
         sql = """
         CREATE TABLE {} (
-            'timestamp' DATETIME,
+            'timestamp' DATETIME PRIMARY KEY,
             'opening' FLOAT,
             'highest' FLOAT,
             'lowest' FLOAT,

@@ -15,4 +15,4 @@ class TestTrade:
         assert after.__dict__ == Position(name="btc", crypto=0.5, usdt=0.0).__dict__
 
     def test_operation(self):
-        assert Trade(name="btc", price=2000.0, crypto=1.0).operation() == "BUY"
+        assert Trade(name="btc", price=2000.0, crypto=1.0).operation() == "buy"

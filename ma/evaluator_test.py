@@ -2,24 +2,25 @@
 import datetime
 
 from ma import command, model
+from ma.candle import CandleChart, Candle
 from ma.evaluator import Evaluator
 
 
-class MockKLineChart(command.KLineChart):
+class MockCandleChart(CandleChart):
     def __init__(self, records: []):
         self._records = records
 
-    def add_price(self, timestamp: datetime.datetime, price: float):
+    def __del__(self):
         pass
 
-    def set_price(self, timestamp: datetime.datetime, price: float):
+    def insert_one(self, c: Candle):
         pass
 
-    def get_records(self, since: datetime, until: datetime) -> []:
+    def insert_multi(self, cs: []):
+        pass
+
+    def query(self, since: datetime = None, until: datetime = None) -> []:
         return self._records
-
-    def save(self):
-        pass
 
 
 class TestEvaluator:
@@ -29,8 +30,8 @@ class TestEvaluator:
             model.KLineRecord(timestamp=datetime.datetime(year=2022, month=1, day=1), price=1.0),
             model.KLineRecord(timestamp=datetime.datetime(year=2022, month=1, day=2), price=2.0),
         ]
-        k_line_chart = MockKLineChart(records=raw_records)
-        scored_records = eval.get_scores(k_line_chart=k_line_chart)
+        candle_chart = MockCandleChart(records=raw_records)
+        scored_records = eval.get_scores(candle_chart=candle_chart)
         assert len(scored_records) == 2
         assert scored_records[0].timestamp == raw_records[0].timestamp
         assert scored_records[0].ma[1] == raw_records[0].price

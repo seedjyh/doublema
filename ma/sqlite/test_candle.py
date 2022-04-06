@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 
-from ma.sqlite.candle import CandleChart, Candle
+from ma.candle import Candle
+from ma.sqlite.candle import CandleChart
 
 
 class TestCandleChat:
