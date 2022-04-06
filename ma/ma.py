@@ -11,6 +11,7 @@ from ma import command
 from ma import model
 from ma.displayer import Displayer
 from ma.evaluator import Evaluator
+from ma.position import Position
 from ma.sqlite import candle
 
 
@@ -77,18 +78,18 @@ if __name__ == "__main__":
                 candle_chart=candle.CandleChart(db_name=db_name, ccy=opt.crypto_name), evaluator=evaluator,
                                 position=model.Position(name=opt.crypto_name, crypto=opt.crypto_balance,
                                                         usdt=opt.usdt_balance), displayer=displayer)
-        # elif opt.operation == "position":
-        #     command.set_position(
-        #         record=model.PositionRecord(
-        #             timestamp=datetime.datetime.now(),
-        #             position=model.Position(
-        #                 name=opt.crypto_name,
-        #                 crypto=opt.crypto_balance,
-        #                 usdt=opt.usdt_balance,
-        #             ),
-        #         ),
-        #         displayer=displayer,
-        #     )
+        elif opt.operation == "position":
+            command.set_position(
+                record=Position(
+                    timestamp=datetime.datetime.now(),
+                    position=model.Position(
+                        name=opt.crypto_name,
+                        crypto=opt.crypto_balance,
+                        usdt=opt.usdt_balance,
+                    ),
+                ),
+                displayer=displayer,
+            )
         else:
             raise Exception("unknown operation:" + opt.operation)
     except Exception as e:

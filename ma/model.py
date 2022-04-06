@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import datetime
 
+from ma.position import Position
+
 
 class KLineRecord:
     def __init__(self, timestamp: datetime.datetime, price: float):
@@ -11,40 +13,6 @@ class KLineRecord:
         """
         self.timestamp = timestamp
         self.price = price
-
-
-class Position:
-    """
-    仓位状态。
-    """
-
-    def __init__(self, name: str, crypto: float, usdt: float):
-        """
-        :param name: 仓位名称，通常是加密货币名，如 ”btc“
-        :param crypto: 加密货币的余额。
-        :param usdt: 用于该加密火币交易的usdt余额。
-        """
-        self.name = str(name)
-        self.crypto = float(crypto)
-        self.usdt = float(usdt)
-
-    def assert_valid(self):
-        if self.crypto < -1e-5:
-            raise Exception("invalid position, crypto={}".format(self.crypto))
-        if self.usdt < -1e-5:
-            raise Exception("invalid position, usdt={}".format(self.usdt))
-
-    def total(self, price: float):
-        return self.usdt + self.crypto * price
-
-    def score(self, price: float):
-        return 1.0 - self.usdt / self.total(price)
-
-
-class PositionRecord:
-    def __init__(self, timestamp: datetime.datetime, position: Position):
-        self.timestamp = timestamp
-        self.position = position
 
 
 class Trade:

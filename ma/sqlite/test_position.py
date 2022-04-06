@@ -2,7 +2,8 @@
 import pytest
 
 from ma.sqlite.exception import NoSuchRecord
-from ma.sqlite.position import PositionRepository, Position
+from ma.sqlite.position import PositionRepository
+from ma.position import Position
 
 
 class TestPositionRepository:

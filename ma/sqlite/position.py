@@ -1,14 +1,8 @@
 # -*- coding: utf-8 -*-
 import sqlite3
 
+from ma.position import Position
 from ma.sqlite.exception import NoSuchRecord
-
-
-class Position:
-    def __init__(self, name, crypto: float, usdt: float):
-        self.name = name
-        self.crypto = crypto
-        self.usdt = usdt
 
 
 class PositionRepository:
