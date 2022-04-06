@@ -13,6 +13,7 @@ class PositionRepository:
             self._create_table()
 
     def __del__(self):
+        self._conn.commit()
         self._conn.close()
 
     def set(self, p: Position):

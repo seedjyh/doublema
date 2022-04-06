@@ -7,8 +7,7 @@ import datetime
 import math
 
 from ma.candle import CandleChart, Candle
-from ma.model import Position
-
+from ma.position import PositionRepository, Position
 
 
 class Evaluator:
@@ -155,3 +154,7 @@ def find_advice(candle_chart: CandleChart, evaluator: Evaluator, position: Posit
         }
         lines.append(new_line)
     displayer.display(fields=fields, lines=lines)
+
+
+def set_position(position_repository: PositionRepository, position: Position):
+    position_repository.set(position)

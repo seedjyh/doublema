@@ -13,6 +13,7 @@ from ma.displayer import Displayer
 from ma.evaluator import Evaluator
 from ma.position import Position
 from ma.sqlite import candle
+from ma.sqlite.position import PositionRepository
 
 
 class Options:
@@ -56,39 +57,38 @@ def get_options(argv) -> Options:
 
 if __name__ == "__main__":
     opt = get_options(sys.argv[1:])
-    # k_line_chart = KLineChart(name=opt.crypto_name)
     db_name = "ma.sqlite.db"
     evaluator = Evaluator()
     displayer = Displayer()
+    position_repository = PositionRepository(db_name=db_name)
     try:
         if opt.operation == "add":
             command.add_price(
-                candle_chart=candle.CandleChart(db_name=db_name, ccy=opt.crypto_name), timestamp=opt.datetime, price=opt.price)
+                candle_chart=candle.CandleChart(db_name=db_name, ccy=opt.crypto_name), timestamp=opt.datetime,
+                price=opt.price)
         elif opt.operation == "show":
             command.show_k_line(
                 candle_chart=candle.CandleChart(db_name=db_name, ccy=opt.crypto_name), displayer=displayer)
         elif opt.operation == "score":
             command.list_scores(
-                candle_chart=candle.CandleChart(db_name=db_name, ccy=opt.crypto_name), evaluator=evaluator, displayer=displayer)
+                candle_chart=candle.CandleChart(db_name=db_name, ccy=opt.crypto_name), evaluator=evaluator,
+                displayer=displayer)
         elif opt.operation == "playback":
             command.playback(
-                candle_chart=candle.CandleChart(db_name=db_name, ccy=opt.crypto_name), evaluator=evaluator, displayer=displayer)
+                candle_chart=candle.CandleChart(db_name=db_name, ccy=opt.crypto_name), evaluator=evaluator,
+                displayer=displayer)
         elif opt.operation == "advice":
             command.find_advice(
                 candle_chart=candle.CandleChart(db_name=db_name, ccy=opt.crypto_name), evaluator=evaluator,
-                                position=model.Position(name=opt.crypto_name, crypto=opt.crypto_balance,
-                                                        usdt=opt.usdt_balance), displayer=displayer)
+                position=position_repository.query(name=opt.crypto_name), displayer=displayer)
         elif opt.operation == "position":
             command.set_position(
-                record=Position(
-                    timestamp=datetime.datetime.now(),
-                    position=model.Position(
-                        name=opt.crypto_name,
-                        crypto=opt.crypto_balance,
-                        usdt=opt.usdt_balance,
-                    ),
+                position_repository=position_repository,
+                position=Position(
+                    name=opt.crypto_name,
+                    crypto=opt.crypto_balance,
+                    usdt=opt.usdt_balance,
                 ),
-                displayer=displayer,
             )
         else:
             raise Exception("unknown operation:" + opt.operation)
