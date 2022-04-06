@@ -28,8 +28,8 @@ def get_options(argv) -> Options:
     # todo: 检查参数数量
     # todo: 检查参数值合法性
     options = Options()
-    options.crypto_name = argv[0]
-    options.operation = argv[1]
+    options.operation = argv[0]
+    options.crypto_name = argv[1]
     opt_define = [
         ("d:", "datetime="),
         ("p:", "price="),
