@@ -34,7 +34,7 @@ class Trade:
         }
 
     def get_operation(self):
-        if abs(self._usdt_diff) < 0.001:
+        if abs(self._usdt_diff) < 1.0:
             return "---"
         if self._usdt_diff > 0:
             return "SELL"
