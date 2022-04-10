@@ -4,14 +4,27 @@ from datetime import datetime, timedelta
 
 
 class Candlestick:
-    def __init__(self, ccy: str, bar: str, t: datetime, o: float, h: float, l: float, c: float):
-        self._ccy = ccy
-        self._bar = bar
+    def __init__(self, t: datetime, o: float, h: float, l: float, c: float):
         self._t = t
         self._o = o
         self._h = h
         self._l = l
         self._c = c
+
+    def t(self):
+        return self._t
+
+    def o(self):
+        return self._o
+
+    def h(self):
+        return self._h
+
+    def l(self):
+        return self._l
+
+    def c(self):
+        return self._c
 
     def timestamp(self):
         return self._t.timestamp()
@@ -26,13 +39,11 @@ CCY_BTC = "btc"
 
 class Market(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def query(self, ccy: str, since: datetime, until: datetime, bar: str):
+    def query(self, since: datetime, until: datetime):
         """
         获取一段时间的市场行情。
-        :param ccy: 加密货币的名称，如 BTC, btc 等。
         :param since: 查询的开始时刻。
         :param until: 查询的结束时刻。
-        :param bar: 柱形图的单位。
         :return: Candlestick 列表。
         """
         pass

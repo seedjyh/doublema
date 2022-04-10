@@ -8,29 +8,32 @@ market 实现了 smarter.market.Market 接口访问Okex交易所并下载行情�
 import abc
 from datetime import datetime
 from smarter import market
-from smarter.market import Candlestick
 from okex import _api
+from okex import _sqlite
 
 
 class Market(market.Market):
-    def __init__(self):
-        pass
+    def __init__(self, ccy: str, bar: str, db: str = None):
+        self._ccy = ccy
+        self._bar = bar
+        db = db or ":memory:"
+        self._repo = _sqlite.Repo(ccy=ccy, bar=bar, db=db)
 
-    def query(self, ccy: str = None, since: datetime = None, until: datetime = None, bar: str = None):
-        return _api.query(ccy, since, until, bar)
+    def query(self, since: datetime = None, until: datetime = None):
+        res = self._repo.query(since, until)
+        if len(res) == 0:
+            self._repo.save(candles=_api.query(self._ccy, since, until, self._bar))
+        else:
+            if since and res[0].t() > since:
+                self._repo.save(candles=_api.query(self._ccy, since, res[0].t(), self._bar))
+            if until and res[-1].t() < until:
+                self._repo.save(candles=_api.query(self._ccy, res[-1].t(), until, self._bar))
+        return self._repo.query(since, until)
 
 
 class Repo(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def save(self, candle: Candlestick):
-        """
-        将candle保存到数据库。
-        :param candle: 要保存的行情数据，Candlestick类型。
-        :return: 无
-        """
-        pass
-
-    def save_all(self, candles: []):
+    def save(self, candles: []):
         """
         将所有candles保存到数据库。
         :param candles: Candlestick列表
@@ -38,12 +41,11 @@ class Repo(metaclass=abc.ABCMeta):
         """
         pass
 
-    def query(self, ccy: str, since: datetime, until: datetime, bar: str) -> []:
+    @abc.abstractmethod
+    def query(self, since: datetime, until: datetime) -> []:
         """
         查询指定范围数据。
-        :param ccy:
         :param since:
         :param until:
-        :param bar:
         :return: Candlestick 列表
         """

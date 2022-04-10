@@ -57,8 +57,6 @@ def query(ccy: str = None, since: datetime = None, until: datetime = None, bar: 
     candles = []
     for (ts, o, h, l, c, vol, vol_ccy) in body.get("data"):
         candles.append(market.Candlestick(
-            ccy=ccy,
-            bar=bar,
             t=datetime.fromtimestamp(int(ts) / 1000),
             o=float(o),
             h=float(h),
