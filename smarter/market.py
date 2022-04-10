@@ -4,7 +4,9 @@ from datetime import datetime, timedelta
 
 
 class Candlestick:
-    def __init__(self, t: datetime, o: float, h: float, l: float, c: float):
+    def __init__(self, ccy: str, bar: str, t: datetime, o: float, h: float, l: float, c: float):
+        self._ccy = ccy
+        self._bar = bar
         self._t = t
         self._o = o
         self._h = h
