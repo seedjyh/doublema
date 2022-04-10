@@ -7,3 +7,5 @@
 /ma/__pycache__/*.pyc
 /ma/database/__pycache__/*.pyc
 /*.db
+/okex/secret.py
+/okex/proxy.py
