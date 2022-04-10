@@ -38,6 +38,10 @@ CCY_BTC = "btc"
 
 
 class Market(metaclass=abc.ABCMeta):
+    def __init__(self, ccy: str, bar: str):
+        self._ccy = ccy
+        self._bar = bar
+
     @abc.abstractmethod
     def query(self, since: datetime, until: datetime):
         """

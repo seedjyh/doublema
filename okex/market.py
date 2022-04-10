@@ -14,8 +14,7 @@ from okex import _sqlite
 
 class Market(market.Market):
     def __init__(self, ccy: str, bar: str, db: str = None):
-        self._ccy = ccy
-        self._bar = bar
+        super(Market, self).__init__(ccy=ccy, bar=bar)
         db = db or ":memory:"
         self._repo = _sqlite.Repo(ccy=ccy, bar=bar, db=db)
 
