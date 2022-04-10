@@ -93,7 +93,7 @@ def _get_advice_one(ccy: str):
         raw_position = _sqlite.Repo(db=_db).query(ccy=ccy)
         total = raw_position.total(price=now_score.p)
         expect_crypto = total * now_score.v / now_score.p
-        if abs(expect_crypto - raw_position.crypto) < 1.0:
+        if now_score.p * abs(expect_crypto - raw_position.crypto) < 1.0:
             print("--")
         elif expect_crypto > raw_position.crypto:
             buy_crypto = expect_crypto - raw_position.crypto
