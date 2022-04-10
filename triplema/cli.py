@@ -80,6 +80,13 @@ def _show_one_positions(ccy: str):
 
 
 def get_advice(ccy: str):
+    if ccy == "all":
+        _get_advice_all()
+    else:
+        _get_advice_one(ccy=ccy)
+
+
+def _get_advice_one(ccy: str):
     try:
         t = datetime.combine(datetime.today() + timedelta(days=-1), datetime.min.time())
         now_score = calc_score(ccy=ccy, t=t)
@@ -98,6 +105,11 @@ def get_advice(ccy: str):
             print("Sell, ccy={}, crypto=-{}, usdt=+{}".format(ccy, -sell_crypto, receive))
     except Exception as e:
         print("ERR: exception {}".format(e))
+
+
+def _get_advice_all():
+    for p in _sqlite.Repo(db=_db).query_all():
+        _get_advice_one(ccy=p.ccy)
 
 
 class Options:
