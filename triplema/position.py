@@ -7,6 +7,8 @@ class Position:
         self.ccy = ccy
         self.crypto = crypto
         self.usdt = usdt
+        if abs(self.usdt) < 1e-2:
+            self.usdt = 0.0
 
     def assert_valid(self):
         if self.crypto < -1e-5:

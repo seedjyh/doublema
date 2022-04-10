@@ -9,4 +9,5 @@
 /*.db
 /okex/_proxy.py
 /okex/_secret.py
-/ma/sqlite/__pycache__/*.pyc
+*.pyc
+*.sqlite_db
