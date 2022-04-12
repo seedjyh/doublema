@@ -14,11 +14,12 @@ class IndexChart:
     def __init__(self, source=model.Market):
         self._source = source
 
-    def query(self, since: datetime, until: datetime, ma_list: dict):
+    def query(self, ccy: str, bar: str, since: datetime, until: datetime, ma_list: list):
         max_ma = max(ma_list)
         source_since = since + timedelta(days=-max_ma)
         source_until = until
-        tmp_res = [Index(t=c.t(), ma={1: c.c()}) for c in self._source.query(source_since, source_until)]
+        tmp_res = [Index(t=c.t(), ma={1: c.c()}) for c in
+                   self._source.query(ccy=ccy, bar=bar, since=source_since, until=source_until)]
         for i in range(len(tmp_res)):
             for interval in ma_list:
                 if interval == 1:

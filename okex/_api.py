@@ -53,7 +53,7 @@ def query(ccy: str = None, since: datetime = None, until: datetime = None, bar: 
         raise Exception("http status code {}".format(rsp.status_code))
     body = rsp.json()
     if body.get("code") != "0":
-        raise Exception("response code {}".format(body.get("code")))
+        raise Exception("response code {}".format(body))
     candles = []
     for (ts, o, h, l, c, vol, vol_ccy) in body.get("data"):
         candles.append(model.Candlestick(

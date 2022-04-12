@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 import getopt
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import model
+import okex.market
 import triplema._position
-from triplema.strategy import calc_score
+from triplema import _position, _index, _score
 
 _db = "triplema.sqlite_db"
+_market_db = "triplema_okex.sqlite_db"
+_ma_list = [1, 5, 13, 34]
 
 
 def set_position(ccy: str, crypto: float, usdt: float):
@@ -15,6 +18,7 @@ def set_position(ccy: str, crypto: float, usdt: float):
         triplema._position.PositionRepository(db=_db).set(p=model.Position(ccy=ccy, crypto=crypto, usdt=usdt))
     except Exception as e:
         print("ERR: exception {}".format(e))
+        raise e
 
 
 def buy_position(ccy: str, price: float, crypto: float):
@@ -69,38 +73,15 @@ def show_position(ccy: str):
     except Exception as e:
         print("ERR: exception {}".format(e))
 
+
 def get_advice(ccy: str):
+    evaluator = _score.Evaluator(source=okex.market.Market(db=_market_db), bar=model.BAR_1D, ma_list=_ma_list)
+    now = datetime.now()
     if ccy == "all":
-        _get_advice_all()
+        for p in _position.PositionRepository(db=_db).query_all():
+            evaluator.get_advice_one(raw_position=_position.PositionRepository(db=_db).query(ccy=p.ccy), t=now)
     else:
-        _get_advice_one(ccy=ccy)
-
-
-def _get_advice_one(ccy: str):
-    try:
-        t = datetime.combine(datetime.today() + timedelta(days=-1), datetime.min.time())
-        now_score = calc_score(ccy=ccy, t=t)
-        raw_position = triplema._position.PositionRepository(db=_db).query(ccy=ccy)
-        total = raw_position.total(price=now_score.p)
-        expect_crypto = total * now_score.v / now_score.p
-        if now_score.p * abs(expect_crypto - raw_position.crypto) < 1.0:
-            print("--")
-        elif expect_crypto > raw_position.crypto:
-            buy_crypto = expect_crypto - raw_position.crypto
-            cost = buy_crypto * now_score.p
-            print("Buy, ccy={}, crypto=+{}, usdt=-{}".format(ccy, buy_crypto, cost))
-        elif expect_crypto < raw_position.crypto:
-            sell_crypto = raw_position.crypto - expect_crypto
-            receive = sell_crypto * now_score.p
-            print("Sell, ccy={}, crypto=-{}, usdt=+{}".format(ccy, -sell_crypto, receive))
-    except Exception as e:
-        print("ERR: exception {}".format(e))
-        raise
-
-
-def _get_advice_all():
-    for p in triplema._position.PositionRepository(db=_db).query_all():
-        _get_advice_one(ccy=p.ccy)
+        evaluator.get_advice_one(raw_position=_position.PositionRepository(db=_db).query(ccy=ccy), t=now)
 
 
 class Options:

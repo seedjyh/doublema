@@ -17,8 +17,8 @@ class Market(model.Market):
         self._db = db
 
     def query(self, ccy: str, bar: str, since: datetime = None, until: datetime = None):
-        repo = _sqlite.Repo(db=self._db, ccy=ccy, bar=bar)
-        res = repo.query(since, until)
+        repo = _sqlite.Repo(ccy=ccy, bar=bar, db=self._db)
+        res = repo.query(since=since, until=until)
         if len(res) == 0:
             repo.save(candles=_api.query(ccy, since, until, bar))
         else:
@@ -26,7 +26,7 @@ class Market(model.Market):
                 repo.save(candles=_api.query(ccy, since, res[0].t(), bar))
             if until and res[-1].t() < until:
                 repo.save(candles=_api.query(ccy, res[-1].t(), until, bar))
-        return repo.query(since, until)
+        return repo.query(since=since, until=until)
 
 
 class Repo(metaclass=abc.ABCMeta):
