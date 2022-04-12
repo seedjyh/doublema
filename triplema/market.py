@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 
-import smarter.market
+import model
 
 
 class Index:
@@ -11,7 +11,7 @@ class Index:
 
 
 class Market:
-    def __init__(self, source=smarter.market.Market):
+    def __init__(self, source=model.Market):
         self._source = source
 
     def query(self, since: datetime, until: datetime, ma_list: dict):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 
-from smarter.market import CCY_BTC, Candlestick, BAR_1D
+from model import CCY_BTC, Candlestick, BAR_1D
 from okex._api import query
 
 

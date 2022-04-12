@@ -4,7 +4,7 @@ from datetime import datetime
 import pytest
 
 from okex._sqlite import Repo
-from smarter.market import Candlestick, BAR_1D, CCY_BTC
+from model import Candlestick, BAR_1D, CCY_BTC
 
 
 class TestRepo:

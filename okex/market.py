@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 
 """
-market 实现了 smarter.market.Market 接口访问Okex交易所并下载行情数据的功能。
+market 实现了 model.Market 接口访问Okex交易所并下载行情数据的功能。
 
 依赖repo.Repo做缓存或存储，但自己不实现。
 """
 import abc
 from datetime import datetime
-from smarter import market
+import model
 from okex import _api
 from okex import _sqlite
 
 
-class Market(market.Market):
+class Market(model.Market):
     def __init__(self, ccy: str, bar: str, db: str = None):
         super(Market, self).__init__(ccy=ccy, bar=bar)
         db = db or ":memory:"

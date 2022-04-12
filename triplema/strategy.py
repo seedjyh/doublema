@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 import triplema.market
 import okex.market
-from smarter.market import BAR_1D, CCY_BTC
+from model import BAR_1D, CCY_BTC
 from triplema import _arg
 
 

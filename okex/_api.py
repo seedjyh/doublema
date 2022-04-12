@@ -8,7 +8,7 @@ from urllib.parse import urljoin
 import requests
 
 from okex import _secret, _proxy, _host
-from smarter import market
+import model
 
 
 def query(ccy: str = None, since: datetime = None, until: datetime = None, bar: str = None):

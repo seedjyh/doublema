@@ -2,7 +2,7 @@
 import sqlite3
 from datetime import datetime
 
-from smarter.market import Candlestick
+from model import Candlestick
 
 
 class Repo:

@@ -2,7 +2,7 @@
 from datetime import datetime
 
 from okex.market import Market
-from smarter.market import CCY_BTC, BAR_1D, Candlestick
+from model import CCY_BTC, BAR_1D, Candlestick
 
 
 class TestMarket:
