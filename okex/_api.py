@@ -13,10 +13,10 @@ import model
 
 def query(ccy: str = None, since: datetime = None, until: datetime = None, bar: str = None):
     # 故意偏移1毫秒，以确保这个时间也被包含在内
-    ccy = (ccy or market.CCY_BTC)
+    ccy = (ccy or model.CCY_BTC)
     since = (since or datetime(year=2022, month=1, day=1)) + timedelta(milliseconds=-1)
     until = (until or datetime.utcnow()) + + timedelta(milliseconds=1)
-    bar = (bar or market.BAR_1D)
+    bar = (bar or model.BAR_1D)
     host = _host.url
     request_path = "/api/v5/market/candles"
     url = urljoin(host, request_path)
@@ -53,10 +53,10 @@ def query(ccy: str = None, since: datetime = None, until: datetime = None, bar: 
         raise Exception("http status code {}".format(rsp.status_code))
     body = rsp.json()
     if body.get("code") != "0":
-        raise Exception("response code {}".format(body.code))
+        raise Exception("response code {}".format(body.get("code")))
     candles = []
     for (ts, o, h, l, c, vol, vol_ccy) in body.get("data"):
-        candles.append(market.Candlestick(
+        candles.append(model.Candlestick(
             t=datetime.fromtimestamp(int(ts) / 1000),
             o=float(o),
             h=float(h),

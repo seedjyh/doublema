@@ -13,21 +13,20 @@ from okex import _sqlite
 
 
 class Market(model.Market):
-    def __init__(self, ccy: str, bar: str, db: str = None):
-        super(Market, self).__init__(ccy=ccy, bar=bar)
-        db = db or ":memory:"
-        self._repo = _sqlite.Repo(ccy=ccy, bar=bar, db=db)
+    def __init__(self, db: str = ":memory:"):
+        self._db = db
 
-    def query(self, since: datetime = None, until: datetime = None):
-        res = self._repo.query(since, until)
+    def query(self, ccy: str, bar: str, since: datetime = None, until: datetime = None):
+        repo = _sqlite.Repo(db=self._db, ccy=ccy, bar=bar)
+        res = repo.query(since, until)
         if len(res) == 0:
-            self._repo.save(candles=_api.query(self._ccy, since, until, self._bar))
+            repo.save(candles=_api.query(ccy, since, until, bar))
         else:
             if since and res[0].t() > since:
-                self._repo.save(candles=_api.query(self._ccy, since, res[0].t(), self._bar))
+                repo.save(candles=_api.query(ccy, since, res[0].t(), bar))
             if until and res[-1].t() < until:
-                self._repo.save(candles=_api.query(self._ccy, res[-1].t(), until, self._bar))
-        return self._repo.query(since, until)
+                repo.save(candles=_api.query(ccy, res[-1].t(), until, bar))
+        return repo.query(since, until)
 
 
 class Repo(metaclass=abc.ABCMeta):

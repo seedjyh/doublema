@@ -7,10 +7,13 @@ from model import CCY_BTC, BAR_1D, Candlestick
 
 class TestMarket:
     def test_query(self):
-        m = Market(ccy=CCY_BTC, bar=BAR_1D)
-        m.query(since=datetime(year=2022, month=4, day=3), until=datetime(year=2022, month=4, day=4))
-        m.query(since=datetime(year=2022, month=4, day=2), until=datetime(year=2022, month=4, day=5))
-        res = m.query(since=datetime(year=2022, month=4, day=1), until=datetime(year=2022, month=4, day=6))
+        m = Market()
+        m.query(ccy=CCY_BTC, bar=BAR_1D, since=datetime(year=2022, month=4, day=3),
+                until=datetime(year=2022, month=4, day=4))
+        m.query(ccy=CCY_BTC, bar=BAR_1D, since=datetime(year=2022, month=4, day=2),
+                until=datetime(year=2022, month=4, day=5))
+        res = m.query(ccy=CCY_BTC, bar=BAR_1D, since=datetime(year=2022, month=4, day=1),
+                      until=datetime(year=2022, month=4, day=6))
         assert len(res) == 6
         assert res[0].__dict__ == Candlestick(t=datetime(year=2022, month=4, day=1), o=46453.4, h=46707.8, l=44219.6,
                                               c=46529.6).__dict__

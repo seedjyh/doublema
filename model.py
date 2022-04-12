@@ -38,14 +38,12 @@ CCY_BTC = "btc"
 
 
 class Market(metaclass=abc.ABCMeta):
-    def __init__(self, ccy: str, bar: str):
-        self._ccy = ccy
-        self._bar = bar
-
     @abc.abstractmethod
-    def query(self, since: datetime, until: datetime):
+    def query(self, ccy: str, bar: str, since: datetime, until: datetime):
         """
         获取一段时间的市场行情。
+        :param ccy: 标的，如"btc"
+        :param bar: K柱宽度
         :param since: 查询的开始时刻。
         :param until: 查询的结束时刻。
         :return: Candlestick 列表。
