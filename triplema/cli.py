@@ -125,11 +125,11 @@ def playback(ccy: str):
     for record in _playback.playback(ccy=ccy, market=market, bar=_bar, ma_list=_ma_list, since=since, until=until):
         lines.append({
             "ts": record.ts,
-            "begin crypto": record.crypto,
-            "begin usdt": record.usdt,
-            "closing price": record.closing,
-            "final total": record.total,
-            "final score": record.score,
+            "begin crypto": "{:.8f} {}".format(record.crypto, ccy),
+            "begin usdt": "{:.8f} usdt".format(record.usdt),
+            "closing price": "{:.8f} usdt/{}".format(record.closing, ccy),
+            "final total": "{:.8f} usdt".format(record.total),
+            "final score": "{:.3f}".format(record.score),
         })
     displayer.display(fields=fields, lines=lines)
 
