@@ -3,6 +3,7 @@ import getopt
 import sys
 from datetime import datetime
 
+import display
 import model
 import okex.market
 import triplema._position
@@ -64,12 +65,16 @@ def sell_position(ccy: str, price: float, crypto: float):
 def show_position(ccy: str):
     try:
         repo = triplema._position.PositionRepository(db=_db)
+        displayer = display.Displayer()
+        fields = ["ccy", "crypto", "usdt"]
+        lines = []
         if ccy == "all":
             for p in repo.query_all():
-                print(p.__dict__)
+                lines.append(p.__dict__)
         else:
             p = repo.query(ccy=ccy)
-            print(p.__dict__)
+            lines.append(p.__dict__)
+        displayer.display(fields=fields, lines=lines)
     except Exception as e:
         print("ERR: exception {}".format(e))
 
