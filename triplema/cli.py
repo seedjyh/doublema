@@ -100,7 +100,7 @@ def get_advice(ccy: str):
                     "usdt": "{:+.8f} usdt".format(-trade.crypto * trade.price),
                 })
         else:
-            trade = evaluator.get_advice_one(raw_position=_position.PositionRepository(db=_db).query(ccy=ccy), t=now)
+            trade = evaluator.get_advice_one(raw_position=_position.PositionRepository(db=_db).query(ccy=ccy), now=now)
             lines.append({
                 "id": len(lines) + 1,
                 "operation": trade.operation(),
@@ -112,6 +112,7 @@ def get_advice(ccy: str):
         displayer.display(fields=fields, lines=lines)
     except Exception as e:
         print("ERR: exception {}".format(e))
+        raise e
 
 
 def playback(ccy: str):
