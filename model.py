@@ -51,3 +51,29 @@ class Market(metaclass=abc.ABCMeta):
         :return: Candlestick 列表。
         """
         pass
+
+
+class Position:
+    def __init__(self, ccy: str, crypto: float, usdt: float):
+        self.ccy = ccy
+        self.crypto = crypto
+        self.usdt = usdt
+
+
+class PositionRepository(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def set(self, p: Position):
+        pass
+
+    @abc.abstractmethod
+    def query(self, ccy: str):
+        pass
+
+    @abc.abstractmethod
+    def query_all(self):
+        pass
+
+
+class NoSuchRecord(Exception):
+    def __init__(self, sql):
+        self.sql = sql

@@ -3,7 +3,8 @@ import getopt
 import sys
 from datetime import datetime, timedelta
 
-from triplema import position, _sqlite
+import model
+import triplema._position
 from triplema.strategy import calc_score
 
 _db = "triplema.sqlite_db"
@@ -11,26 +12,26 @@ _db = "triplema.sqlite_db"
 
 def set_position(ccy: str, crypto: float, usdt: float):
     try:
-        _sqlite.Repo(db=_db).set(p=position.Position(ccy=ccy, crypto=crypto, usdt=usdt))
+        triplema._position.PositionRepository(db=_db).set(p=model.Position(ccy=ccy, crypto=crypto, usdt=usdt))
     except Exception as e:
         print("ERR: exception {}".format(e))
 
 
 def buy_position(ccy: str, price: float, crypto: float):
     try:
-        repo = _sqlite.Repo(db=_db)
+        repo = triplema._position.PositionRepository(db=_db)
         raw_position = repo.query(ccy=ccy)
         cost = crypto * price
         if cost > raw_position.usdt:
             raise Exception("no enough usdt")
-        new_position = position.Position(
+        new_position = model.Position(
             ccy=raw_position.ccy,
             crypto=raw_position.crypto + crypto,
             usdt=raw_position.usdt - cost,
         )
         repo.set(p=new_position)
         print("OK.")
-    except position.NoSuchRecord:
+    except model.NoSuchRecord:
         print("ERR: No position record for ccy {}".format(ccy))
     except Exception as e:
         print("ERR: exception {}".format(e))
@@ -38,46 +39,35 @@ def buy_position(ccy: str, price: float, crypto: float):
 
 def sell_position(ccy: str, price: float, crypto: float):
     try:
-        repo = _sqlite.Repo(db=_db)
+        repo = triplema._position.PositionRepository(db=_db)
         raw_position = repo.query(ccy=ccy)
         receive = crypto * price
         if crypto > raw_position.crypto:
             raise Exception("no enough {}".format(ccy))
-        new_position = position.Position(
+        new_position = model.Position(
             ccy=raw_position.ccy,
             crypto=raw_position.crypto - crypto,
             usdt=raw_position.usdt + receive,
         )
         repo.set(p=new_position)
         print("OK.")
-    except position.NoSuchRecord:
+    except model.NoSuchRecord:
         print("ERR: No position record for ccy {}".format(ccy))
     except Exception as e:
         print("ERR: exception {}".format(e))
 
 
 def show_position(ccy: str):
-    if ccy == "all":
-        _show_all_positions()
-    else:
-        _show_one_positions(ccy=ccy)
-
-
-def _show_all_positions():
     try:
-        for p in _sqlite.Repo(db=_db).query_all():
+        repo = triplema._position.PositionRepository(db=_db)
+        if ccy == "all":
+            for p in repo.query_all():
+                print(p.__dict__)
+        else:
+            p = repo.query(ccy=ccy)
             print(p.__dict__)
     except Exception as e:
         print("ERR: exception {}".format(e))
-
-
-def _show_one_positions(ccy: str):
-    try:
-        p = _sqlite.Repo(db=_db).query(ccy=ccy)
-        print(p.__dict__)
-    except Exception as e:
-        print("ERR: exception {}".format(e))
-
 
 def get_advice(ccy: str):
     if ccy == "all":
@@ -90,7 +80,7 @@ def _get_advice_one(ccy: str):
     try:
         t = datetime.combine(datetime.today() + timedelta(days=-1), datetime.min.time())
         now_score = calc_score(ccy=ccy, t=t)
-        raw_position = _sqlite.Repo(db=_db).query(ccy=ccy)
+        raw_position = triplema._position.PositionRepository(db=_db).query(ccy=ccy)
         total = raw_position.total(price=now_score.p)
         expect_crypto = total * now_score.v / now_score.p
         if now_score.p * abs(expect_crypto - raw_position.crypto) < 1.0:
@@ -108,7 +98,7 @@ def _get_advice_one(ccy: str):
 
 
 def _get_advice_all():
-    for p in _sqlite.Repo(db=_db).query_all():
+    for p in triplema._position.PositionRepository(db=_db).query_all():
         _get_advice_one(ccy=p.ccy)
 
 

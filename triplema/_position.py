@@ -1,10 +1,27 @@
 # -*- coding: utf-8 -*-
 import sqlite3
 
-from triplema import position
+import model
+from model import PositionRepository
 
 
-class Repo(position.Repo):
+def show_all(repo: PositionRepository):
+    try:
+        for p in repo.query_all():
+            print(p.__dict__)
+    except Exception as e:
+        print("ERR: exception {}".format(e))
+
+
+def show_one(repo: PositionRepository, ccy: str):
+    try:
+        p = repo.query(ccy=ccy)
+        print(p.__dict__)
+    except Exception as e:
+        print("ERR: exception {}".format(e))
+
+
+class PositionRepository(model.PositionRepository):
     def __init__(self, db: str = ":memory:"):
         self._conn = sqlite3.connect(database=db)
         self._table_name = "position"
@@ -15,7 +32,7 @@ class Repo(position.Repo):
         self._conn.commit()
         self._conn.close()
 
-    def set(self, p: position.Position):
+    def set(self, p: model.Position):
         if not self._exist_row(p.ccy):
             self._insert_row(p)
         else:
@@ -28,14 +45,14 @@ class Repo(position.Repo):
             '"' + ccy + '"',
         )
         for row in cur.execute(sql):
-            return position.Position(ccy=row[0], crypto=float(row[1]), usdt=float(row[2]))
+            return model.Position(ccy=row[0], crypto=float(row[1]), usdt=float(row[2]))
         else:
-            raise position.NoSuchRecord(sql=sql)
+            raise model.NoSuchRecord(sql=sql)
 
     def query_all(self):
         cur = self._conn.cursor()
         sql = "SELECT ccy, crypto, usdt FROM {} ORDER BY ccy".format(self._table_name)
-        return [position.Position(ccy=row[0], crypto=float(row[1]), usdt=float(row[2])) for row in cur.execute(sql)]
+        return [model.Position(ccy=row[0], crypto=float(row[1]), usdt=float(row[2])) for row in cur.execute(sql)]
 
     def _table_exist(self):
         cur = self._conn.cursor()
@@ -69,7 +86,7 @@ class Repo(position.Repo):
         else:
             return False
 
-    def _insert_row(self, p: position.Position):
+    def _insert_row(self, p: model.Position):
         cur = self._conn.cursor()
         sql = "INSERT INTO {} (ccy, crypto, usdt) VALUES({}, {}, {})".format(
             self._table_name,
@@ -79,7 +96,7 @@ class Repo(position.Repo):
         )
         return cur.execute(sql)
 
-    def _update_row(self, p: position.Position):
+    def _update_row(self, p: model.Position):
         cur = self._conn.cursor()
         sql = "UPDATE {} SET crypto={}, usdt={} WHERE ccy={}".format(
             self._table_name,
