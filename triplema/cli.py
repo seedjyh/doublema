@@ -7,10 +7,11 @@ import display
 import model
 import okex.market
 import triplema._position
-from triplema import _position, _index, _score
+from triplema import _position, _index, _score, _playback
 
 _db = "triplema.sqlite_db"
 _market_db = "triplema_okex.sqlite_db"
+_bar = model.BAR_1D
 _ma_list = [1, 5, 13, 34]
 
 
@@ -84,7 +85,7 @@ def get_advice(ccy: str):
         displayer = display.Displayer()
         fields = ["id", "operation", "ccy", "price", "amount", "usdt"]
         lines = []
-        evaluator = _score.Evaluator(source=okex.market.Market(db=_market_db), bar=model.BAR_1D, ma_list=_ma_list)
+        evaluator = _score.Evaluator(source=okex.market.Market(db=_market_db), bar=_bar, ma_list=_ma_list)
         now = datetime.now()
         if ccy == "all":
             for p in _position.PositionRepository(db=_db).query_all():
@@ -111,6 +112,25 @@ def get_advice(ccy: str):
         displayer.display(fields=fields, lines=lines)
     except Exception as e:
         print("ERR: exception {}".format(e))
+
+
+def playback(ccy: str):
+    displayer = display.Displayer()
+    fields = ["ts", "begin crypto", "begin usdt", "closing price", "final total", "final score"]
+    lines = []
+    market = okex.market.Market(db=_market_db)
+    since = datetime(year=2022, month=1, day=1)
+    until = datetime.today()
+    for record in _playback.playback(ccy=ccy, market=market, bar=_bar, ma_list=_ma_list, since=since, until=until):
+        lines.append({
+            "ts": record.ts,
+            "begin crypto": record.crypto,
+            "begin usdt": record.usdt,
+            "closing price": record.closing,
+            "final total": record.total,
+            "final score": record.score,
+        })
+    displayer.display(fields=fields, lines=lines)
 
 
 class Options:
@@ -159,3 +179,5 @@ elif opt.operation == "show":
     show_position(ccy=opt.ccy)
 elif opt.operation == "advice":
     get_advice(ccy=opt.ccy)
+elif opt.operation == "playback":
+    playback(ccy=opt.ccy)

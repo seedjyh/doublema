@@ -19,6 +19,19 @@ class Score:
         self.v = v
         self.p = p
 
+    def get_trade(self, raw_position: model.Position) -> model.Trade:
+        total = raw_position.total(price=self.p)
+        expect_crypto = total * self.v / self.p
+        if self._need_trade(trade_usdt=(raw_position.crypto - expect_crypto) * self.p, total_usdt=total):
+            trade = model.Trade(ccy=raw_position.ccy, price=self.p, crypto=expect_crypto - raw_position.crypto)
+            return trade
+        else:
+            return model.Trade(ccy=raw_position.ccy, price=self.p, crypto=0)
+
+    @staticmethod
+    def _need_trade(trade_usdt: float, total_usdt: float):
+        return abs(trade_usdt) / total_usdt > 0.1
+
 
 class Evaluator:
     def __init__(self, source: model.Market, bar: str, ma_list: []):
@@ -47,7 +60,7 @@ class Evaluator:
                 break
         return float(count) / float(total)
 
-    def calc_score(self, ccy: str, t: datetime) -> Score:
+    def get_score(self, ccy: str, t: datetime) -> Score:
         """
         计算指定货币在指定时刻的建议仓位分数。
         :param ccy: 货币名称。
@@ -58,16 +71,13 @@ class Evaluator:
         index = index_list[-1]
         return Score(ccy=ccy, t=index.t, v=self._calc_score(index), p=index.ma[1])
 
-    def get_advice_one(self, raw_position: model.Position, t: datetime):
-        t = datetime.combine(t + timedelta(days=-1), datetime.min.time())
-        now_score = self.calc_score(ccy=raw_position.ccy, t=t)
-        total = raw_position.total(price=now_score.p)
-        expect_crypto = total * now_score.v / now_score.p
-        if self._need_trade(trade_usdt=(raw_position.crypto - expect_crypto) * now_score.p, total_usdt=total):
-            return model.Trade(ccy=raw_position.ccy, price=now_score.p, crypto=expect_crypto - raw_position.crypto)
-        else:
-            return model.Trade(ccy=raw_position.ccy, price=now_score.p, crypto=0)
+    def get_advice_one(self, raw_position: model.Position, now: datetime) -> model.Trade:
+        """
 
-    @staticmethod
-    def _need_trade(trade_usdt: float, total_usdt: float):
-        return abs(trade_usdt) / total_usdt > 0.1
+        :param raw_position:
+        :param now: 过了一半的时间（不是午夜0点）
+        :return:
+        """
+        yesterday = datetime.combine(now + timedelta(days=-1), datetime.min.time())
+        now_score = self.get_score(ccy=raw_position.ccy, t=yesterday)
+        return now_score.get_trade(raw_position=raw_position)
