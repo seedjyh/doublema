@@ -10,7 +10,7 @@ class Index:
         self.ma = ma
 
 
-class Market:
+class IndexChart:
     def __init__(self, source=model.Market):
         self._source = source
 

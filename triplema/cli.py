@@ -95,6 +95,7 @@ def _get_advice_one(ccy: str):
             print("Sell, ccy={}, crypto=-{}, usdt=+{}".format(ccy, -sell_crypto, receive))
     except Exception as e:
         print("ERR: exception {}".format(e))
+        raise
 
 
 def _get_advice_all():

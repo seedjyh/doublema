@@ -2,23 +2,6 @@
 import sqlite3
 
 import model
-from model import PositionRepository
-
-
-def show_all(repo: PositionRepository):
-    try:
-        for p in repo.query_all():
-            print(p.__dict__)
-    except Exception as e:
-        print("ERR: exception {}".format(e))
-
-
-def show_one(repo: PositionRepository, ccy: str):
-    try:
-        p = repo.query(ccy=ccy)
-        print(p.__dict__)
-    except Exception as e:
-        print("ERR: exception {}".format(e))
 
 
 class PositionRepository(model.PositionRepository):

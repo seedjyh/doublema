@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from triplema._position import Position, NoSuchRecord, PositionRepository
+from model import Position, NoSuchRecord
+from triplema._position import PositionRepository
 
 
-class TestRepo:
+class TestPositionRepository:
     def test_set(self):
         pr = PositionRepository()
         ps = [

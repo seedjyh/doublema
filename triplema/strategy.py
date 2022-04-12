@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 
-import triplema.market
+import triplema._index
 import okex.market
 from model import BAR_1D, CCY_BTC
-from triplema import _arg
+from triplema import _index
+
+_ma_list = [1, 5, 13, 34]
+
+# 为了比较不同均线，必须有至少两条均线。
+assert len(_ma_list) > 1
+# 必须包含宽度1的均线，即当前K柱
+assert _ma_list[0] == 1
 
 
 class Score:
@@ -29,8 +36,8 @@ def calc_score(ccy: str, t: datetime) -> Score:
     :param t: 将要计算的是 t 之前已经完整结束的一个k柱。
     :return: Score
     """
-    market = triplema.market.Market(source=okex.market.Market(ccy=ccy, bar=BAR_1D, db="triplema_okex.sqlite_db"))
-    index_list = market.query(since=t, until=t, ma_list=_arg.ma_list)
+    market = _index.IndexChart(source=okex.market.Market(ccy=ccy, bar=BAR_1D, db="triplema_okex.sqlite_db"))
+    index_list = market.query(since=t, until=t, ma_list=_ma_list)
     index = index_list[-1]
     count = 0
     total = len(index.ma) - 1

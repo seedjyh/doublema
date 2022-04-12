@@ -59,6 +59,12 @@ class Position:
         self.crypto = crypto
         self.usdt = usdt
 
+    def total(self, price: float):
+        return self.usdt + self.crypto * price
+
+    def score(self, price: float):
+        return 1.0 - self.usdt / self.total(price)
+
 
 class PositionRepository(metaclass=abc.ABCMeta):
     @abc.abstractmethod
