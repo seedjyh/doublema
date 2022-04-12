@@ -90,7 +90,7 @@ def get_advice(ccy: str):
         if ccy == "all":
             for p in _position.PositionRepository(db=_db).query_all():
                 trade = evaluator.get_advice_one(raw_position=_position.PositionRepository(db=_db).query(ccy=p.ccy),
-                                                 t=now)
+                                                 now=now)
                 lines.append({
                     "id": len(lines) + 1,
                     "operation": trade.operation(),
