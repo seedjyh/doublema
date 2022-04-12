@@ -81,3 +81,45 @@ class PositionRepository(metaclass=abc.ABCMeta):
 class NoSuchRecord(Exception):
     def __init__(self, sql):
         self.sql = sql
+
+
+class Trade:
+    def __init__(self, ccy: str, price: float, crypto: float):
+        """
+        交易参数
+        :param ccy: 仓位名称，通常是加密货币名，如 ”btc“
+        :param price: 交易时加密货币相对于 usdt 的价格。
+        :param crypto: 被交易的加密货币的数量。
+        """
+        self.ccy = ccy
+        self.price = float(price)
+        self.crypto = float(crypto)
+        if abs(price * crypto) < 1e-3:
+            self.crypto = 0
+
+    def ok(self, price):
+        if self.crypto < 0.0:  # sell
+            return self.price < price - 1e-5
+        else:
+            return self.price > price + 1e-5
+
+    def do(self, raw: Position, price=None) -> Position:
+        if price is None:
+            price = self.price
+        amount = self.crypto
+        if amount > 0 and amount * price > raw.usdt:  # BUY
+            amount = raw.usdt / price
+        res = Position(
+            ccy=raw.ccy,
+            crypto=raw.crypto + amount,
+            usdt=raw.usdt - price * amount,
+        )
+        return res
+
+    def operation(self) -> str:
+        if abs(self.price * self.crypto) < 1e-2:
+            return "--"
+        elif self.crypto > 0:
+            return "buy"
+        else:
+            return "sell"

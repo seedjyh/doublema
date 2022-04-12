@@ -64,10 +64,10 @@ def sell_position(ccy: str, price: float, crypto: float):
 
 def show_position(ccy: str):
     try:
-        repo = triplema._position.PositionRepository(db=_db)
         displayer = display.Displayer()
         fields = ["ccy", "crypto", "usdt"]
         lines = []
+        repo = triplema._position.PositionRepository(db=_db)
         if ccy == "all":
             for p in repo.query_all():
                 lines.append(p.__dict__)
@@ -80,13 +80,37 @@ def show_position(ccy: str):
 
 
 def get_advice(ccy: str):
-    evaluator = _score.Evaluator(source=okex.market.Market(db=_market_db), bar=model.BAR_1D, ma_list=_ma_list)
-    now = datetime.now()
-    if ccy == "all":
-        for p in _position.PositionRepository(db=_db).query_all():
-            evaluator.get_advice_one(raw_position=_position.PositionRepository(db=_db).query(ccy=p.ccy), t=now)
-    else:
-        evaluator.get_advice_one(raw_position=_position.PositionRepository(db=_db).query(ccy=ccy), t=now)
+    try:
+        displayer = display.Displayer()
+        fields = ["id", "operation", "ccy", "price", "amount", "usdt"]
+        lines = []
+        evaluator = _score.Evaluator(source=okex.market.Market(db=_market_db), bar=model.BAR_1D, ma_list=_ma_list)
+        now = datetime.now()
+        if ccy == "all":
+            for p in _position.PositionRepository(db=_db).query_all():
+                trade = evaluator.get_advice_one(raw_position=_position.PositionRepository(db=_db).query(ccy=p.ccy),
+                                                 t=now)
+                lines.append({
+                    "id": len(lines) + 1,
+                    "operation": trade.operation(),
+                    "ccy": trade.ccy,
+                    "price": "{:.8f} usdt/{}".format(trade.price, trade.ccy),
+                    "amount": "{:+.8f} {}".format(trade.crypto, trade.ccy),
+                    "usdt": "{:+.8f} usdt".format(-trade.crypto * trade.price),
+                })
+        else:
+            trade = evaluator.get_advice_one(raw_position=_position.PositionRepository(db=_db).query(ccy=ccy), t=now)
+            lines.append({
+                "id": len(lines) + 1,
+                "operation": trade.operation(),
+                "ccy": trade.ccy,
+                "price": "{:.8f} usdt/{}".format(trade.price, trade.ccy),
+                "amount": "{:+.8f} {}".format(trade.crypto, trade.ccy),
+                "usdt": "{:+.8f} usdt".format(-trade.crypto * trade.price),
+            })
+        displayer.display(fields=fields, lines=lines)
+    except Exception as e:
+        print("ERR: exception {}".format(e))
 
 
 class Options:

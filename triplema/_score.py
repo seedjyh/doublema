@@ -59,21 +59,8 @@ class Evaluator:
         return Score(ccy=ccy, t=index.t, v=self._calc_score(index), p=index.ma[1])
 
     def get_advice_one(self, raw_position: model.Position, t: datetime):
-        try:
-            t = datetime.combine(t + timedelta(days=-1), datetime.min.time())
-            now_score = self.calc_score(ccy=raw_position.ccy, t=t)
-            total = raw_position.total(price=now_score.p)
-            expect_crypto = total * now_score.v / now_score.p
-            if now_score.p * abs(expect_crypto - raw_position.crypto) < 1.0:
-                print("--")
-            elif expect_crypto > raw_position.crypto:
-                buy_crypto = expect_crypto - raw_position.crypto
-                cost = buy_crypto * now_score.p
-                print("Buy, ccy={}, crypto=+{}, usdt=-{}".format(raw_position.ccy, buy_crypto, cost))
-            elif expect_crypto < raw_position.crypto:
-                sell_crypto = raw_position.crypto - expect_crypto
-                receive = sell_crypto * now_score.p
-                print("Sell, ccy={}, crypto=-{}, usdt=+{}".format(raw_position.ccy, sell_crypto, receive))
-        except Exception as e:
-            print("ERR: exception {}".format(e))
-            raise
+        t = datetime.combine(t + timedelta(days=-1), datetime.min.time())
+        now_score = self.calc_score(ccy=raw_position.ccy, t=t)
+        total = raw_position.total(price=now_score.p)
+        expect_crypto = total * now_score.v / now_score.p
+        return model.Trade(ccy=raw_position.ccy, price=now_score.p, crypto=expect_crypto - raw_position.crypto)
