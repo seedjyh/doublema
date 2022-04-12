@@ -125,8 +125,8 @@ class Repo:
             c.l(),
             c.c(),
         )
-        print("insert one sql=", sql)
-        print("insert one res=", cur.execute(sql))
+        # print("insert one sql=", sql)
+        # print("insert one res=", cur.execute(sql))
 
 
 class NoSuchRecord(Exception):

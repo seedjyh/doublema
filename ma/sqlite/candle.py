@@ -28,8 +28,8 @@ class CandleChart(candle.CandleChart):
             c.lowest,
             c.closing,
         )
-        print("insert one sql=", sql)
-        print("insert one res=", cur.execute(sql))
+        # print("insert one sql=", sql)
+        # print("insert one res=", cur.execute(sql))
 
     def insert_multi(self, cs: []):
         for c in cs:
