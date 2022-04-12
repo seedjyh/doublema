@@ -63,4 +63,11 @@ class Evaluator:
         now_score = self.calc_score(ccy=raw_position.ccy, t=t)
         total = raw_position.total(price=now_score.p)
         expect_crypto = total * now_score.v / now_score.p
-        return model.Trade(ccy=raw_position.ccy, price=now_score.p, crypto=expect_crypto - raw_position.crypto)
+        if self._need_trade(trade_usdt=(raw_position.crypto - expect_crypto) * now_score.p, total_usdt=total):
+            return model.Trade(ccy=raw_position.ccy, price=now_score.p, crypto=expect_crypto - raw_position.crypto)
+        else:
+            return model.Trade(ccy=raw_position.ccy, price=now_score.p, crypto=0)
+
+    @staticmethod
+    def _need_trade(trade_usdt: float, total_usdt: float):
+        return abs(trade_usdt) / total_usdt > 0.1

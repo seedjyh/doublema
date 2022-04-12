@@ -97,25 +97,6 @@ class Trade:
         if abs(price * crypto) < 1e-3:
             self.crypto = 0
 
-    def ok(self, price):
-        if self.crypto < 0.0:  # sell
-            return self.price < price - 1e-5
-        else:
-            return self.price > price + 1e-5
-
-    def do(self, raw: Position, price=None) -> Position:
-        if price is None:
-            price = self.price
-        amount = self.crypto
-        if amount > 0 and amount * price > raw.usdt:  # BUY
-            amount = raw.usdt / price
-        res = Position(
-            ccy=raw.ccy,
-            crypto=raw.crypto + amount,
-            usdt=raw.usdt - price * amount,
-        )
-        return res
-
     def operation(self) -> str:
         if abs(self.price * self.crypto) < 1e-2:
             return "--"
