@@ -73,7 +73,7 @@ class Evaluator:
             elif expect_crypto < raw_position.crypto:
                 sell_crypto = raw_position.crypto - expect_crypto
                 receive = sell_crypto * now_score.p
-                print("Sell, ccy={}, crypto=-{}, usdt=+{}".format(raw_position.ccy, -sell_crypto, receive))
+                print("Sell, ccy={}, crypto=-{}, usdt=+{}".format(raw_position.ccy, sell_crypto, receive))
         except Exception as e:
             print("ERR: exception {}".format(e))
             raise
