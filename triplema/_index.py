@@ -3,11 +3,14 @@ from datetime import datetime, timedelta
 
 import model
 
+ATR_RANGE = 20
+
 
 class Index:
-    def __init__(self, t: datetime, ma: dict):
+    def __init__(self, t: datetime, ma: dict, atr: float):
         self.t = t
         self.ma = ma
+        self.atr = atr
 
 
 class IndexChart:
@@ -15,21 +18,22 @@ class IndexChart:
         self._source = source
 
     def query(self, ccy: str, bar: str, since: datetime, until: datetime, ma_list: list):
-        max_ma = max(ma_list)
+        max_ma = max(*ma_list, ATR_RANGE)
         source_since = since + timedelta(days=-max_ma)
         source_until = until
-        tmp_res = [Index(t=c.t(), ma={1: c.c()}) for c in
-                   self._source.query(ccy=ccy, bar=bar, since=source_since, until=source_until)]
-        for i in range(len(tmp_res)):
-            for interval in ma_list:
-                if interval == 1:
-                    continue
-                tmp_res[i].ma[interval] = self.calc_average([r.ma[1] for r in tmp_res[max(0, i + 1 - interval): i + 1]])
-
+        source_res = self._source.query(ccy=ccy, bar=bar, since=source_since, until=source_until)
         res = []
-        for r in tmp_res:
-            if r.t >= since:
-                res.append(r)
+        for i in range(len(source_res)):
+            if source_res[i].t() < since:
+                continue
+            new_index = Index(
+                t=source_res[i].t(),
+                ma={},
+                atr=self.calc_average([abs(r.h() - r.l()) for r in source_res[max(0, i + 1 - ATR_RANGE): i + 1]]),
+            )
+            for interval in ma_list:
+                new_index.ma[interval] = self.calc_average([r.c() for r in source_res[max(0, i + 1 - interval): i + 1]])
+            res.append(new_index)
         return res
 
     @staticmethod

@@ -117,7 +117,7 @@ def get_advice(ccy: str):
 
 def playback(ccy: str):
     displayer = display.Displayer()
-    fields = ["ts", "begin crypto", "begin usdt", "closing price", "final total", "final score"]
+    fields = ["ts", "begin crypto", "begin usdt", "closing price", "final total", "final score", "atr"]
     lines = []
     market = okex.market.Market(db=_market_db)
     since = datetime(year=2022, month=1, day=1)
@@ -130,6 +130,7 @@ def playback(ccy: str):
             "closing price": "{:.8f} usdt/{}".format(record.closing, ccy),
             "final total": "{:.8f} usdt".format(record.total),
             "final score": "{:.3f}".format(record.score),
+            "atr": "{:.8f}".format(record.atr),
         })
     displayer.display(fields=fields, lines=lines)
 

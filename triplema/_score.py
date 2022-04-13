@@ -6,18 +6,20 @@ from triplema import _index
 
 
 class Score:
-    def __init__(self, ccy: str, t: datetime, v: float, p: float):
+    def __init__(self, ccy: str, t: datetime, v: float, p: float, atr: float):
         """
 
         :param ccy: 货币名称。
         :param t: 所属K柱
         :param v: 浮点数，0.0~1.0，0表示空仓，1表示满仓。
         :param p: 价格。
+        :param atr: 真实波动均值。
         """
         self.ccy = ccy
         self.t = t
         self.v = v
         self.p = p
+        self.atr = atr
 
     def get_trade(self, raw_position: model.Position) -> model.Trade:
         total = raw_position.total(price=self.p)
@@ -69,7 +71,7 @@ class Evaluator:
         """
         index_list = self._index_chart.query(ccy=ccy, bar=self._bar, since=t, until=t, ma_list=self._ma_list)
         index = index_list[-1]
-        return Score(ccy=ccy, t=index.t, v=self._calc_score(index), p=index.ma[1])
+        return Score(ccy=ccy, t=index.t, v=self._calc_score(index), p=index.ma[1], atr=index.atr)
 
     def get_advice_one(self, raw_position: model.Position, now: datetime) -> model.Trade:
         """

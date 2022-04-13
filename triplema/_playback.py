@@ -6,7 +6,7 @@ from triplema import _score
 
 
 class Record:
-    def __init__(self, ts: datetime, crypto: float, usdt: float, total: float, closing: float, score: float):
+    def __init__(self, ts: datetime, crypto: float, usdt: float, total: float, closing: float, score: float, atr: float):
         """
 
         :param ts: 日期
@@ -15,6 +15,7 @@ class Record:
         :param total: 当天开始时的总价值
         :param closing: 当天收盘价
         :param score: 当天最终分数
+        :param atr: 真实波动均值
         """
         self.ts = ts
         self.crypto = crypto
@@ -22,6 +23,7 @@ class Record:
         self.total = total
         self.closing = closing
         self.score = score
+        self.atr = atr
 
 
 def playback(ccy: str, market: model.Market, bar: str, ma_list: [], since: datetime, until: datetime) -> []:
@@ -39,6 +41,7 @@ def playback(ccy: str, market: model.Market, bar: str, ma_list: [], since: datet
             total=p.total(price=price),
             closing=price,
             score=score.v,
+            atr=score.atr,
         )
         p.crypto += trade.crypto
         p.usdt -= trade.price * trade.crypto
