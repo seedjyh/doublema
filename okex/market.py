@@ -12,21 +12,35 @@ from okex import _api
 from okex import _sqlite
 
 
+def bar_to_timedelta(bar) -> timedelta:
+    if bar == model.BAR_1D:
+        return timedelta(days=1)
+    else:
+        raise Exception("invalid bar {}".format(bar))
+
+
 class Market(model.Market):
     def __init__(self, db: str = ":memory:"):
         self._db = db
 
     def query(self, ccy: str, bar: str, since: datetime, until: datetime):
+        now = datetime.now()
+        bar_timedelta = bar_to_timedelta(bar)
         repo = _sqlite.Repo(ccy=ccy, bar=bar, db=self._db)
         res = repo.query(since=since, until=until)
+        api_res = []
         if len(res) == 0:
-            repo.save(candles=_api.query(ccy=ccy, bar=bar, since=since, until=until))
+            api_res += _api.query(ccy=ccy, bar=bar, since=since, until=until)
         else:
             if res[0].t() > since:
-                repo.save(candles=_api.query(ccy=ccy, bar=bar, since=since, until=res[0].t()))
+                api_res += _api.query(ccy=ccy, bar=bar, since=since, until=res[0].t())
             if res[-1].t() < until:
-                repo.save(candles=_api.query(ccy=ccy, bar=bar, since=res[-1].t(), until=until))
-        return repo.query(since=since, until=until)
+                api_res += _api.query(ccy=ccy, bar=bar, since=res[-1].t() + timedelta(milliseconds=1), until=until)
+        saving_res = [c for c in api_res if c.t() + bar_timedelta <= now]
+        repo.save(candles=saving_res)
+        res += api_res
+        res.sort(key=lambda candle: candle.t())
+        return res
 
 
 class Repo(metaclass=abc.ABCMeta):

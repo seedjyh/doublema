@@ -82,3 +82,10 @@ class TestMarket:
         assert len(db_res) == 2
         assert db_res[0].t() == datetime(year=2022, month=4, day=4, hour=0, minute=0, second=0)
         assert db_res[1].t() == datetime(year=2022, month=4, day=5, hour=0, minute=0, second=0)
+
+    def test_query_not_complete(self):
+        m = Market()
+        since = datetime(year=2022, month=4, day=10)
+        until = datetime.now()
+        res = m.query(ccy=CCY_BTC, bar=BAR_1D, since=since, until=until)
+        assert len(res) == 5
