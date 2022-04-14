@@ -6,7 +6,7 @@ market 实现了 model.Market 接口访问Okex交易所并下载行情数据的�
 依赖repo.Repo做缓存或存储，但自己不实现。
 """
 import abc
-from datetime import datetime
+from datetime import datetime, timedelta
 import model
 from okex import _api
 from okex import _sqlite
@@ -16,16 +16,16 @@ class Market(model.Market):
     def __init__(self, db: str = ":memory:"):
         self._db = db
 
-    def query(self, ccy: str, bar: str, since: datetime = None, until: datetime = None):
+    def query(self, ccy: str, bar: str, since: datetime, until: datetime):
         repo = _sqlite.Repo(ccy=ccy, bar=bar, db=self._db)
         res = repo.query(since=since, until=until)
         if len(res) == 0:
-            repo.save(candles=_api.query(ccy, since, until, bar))
+            repo.save(candles=_api.query(ccy=ccy, bar=bar, since=since, until=until))
         else:
-            if since and res[0].t() > since:
-                repo.save(candles=_api.query(ccy, since, res[0].t(), bar))
-            if until and res[-1].t() < until:
-                repo.save(candles=_api.query(ccy, res[-1].t(), until, bar))
+            if res[0].t() > since:
+                repo.save(candles=_api.query(ccy=ccy, bar=bar, since=since, until=res[0].t()))
+            if res[-1].t() < until:
+                repo.save(candles=_api.query(ccy=ccy, bar=bar, since=res[-1].t(), until=until))
         return repo.query(since=since, until=until)
 
 

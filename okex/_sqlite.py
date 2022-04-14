@@ -36,7 +36,7 @@ class Repo:
         until = until or datetime(year=2099, month=1, day=1)
         sql = """
             SELECT timestamp, opening, highest, lowest, closing FROM {}
-            WHERE timestamp >= {} AND timestamp <= {}
+            WHERE timestamp >= {} AND timestamp < {}
         """.format(
             self._table_name,
             '"' + self._timestamp_to_str(since) + '"',
@@ -109,11 +109,11 @@ class Repo:
 
     @staticmethod
     def _timestamp_to_str(t: datetime) -> str:
-        return t.strftime(format="%Y-%m-%d %H:%M:%S")
+        return t.strftime(format="%Y-%m-%d %H:%M:%S.%f")
 
     @staticmethod
     def _str_to_timestamp(s: str) -> datetime:
-        return datetime.strptime(s, "%Y-%m-%d %H:%M:%S")
+        return datetime.strptime(s, "%Y-%m-%d %H:%M:%S.%f")
 
     def _insert_one(self, c: Candlestick):
         cur = self._conn.cursor()

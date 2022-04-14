@@ -69,7 +69,9 @@ class Evaluator:
         :param t: 将要计算的是 t 之前已经完整结束的一个k柱。
         :return: Score
         """
-        index_list = self._index_chart.query(ccy=ccy, bar=self._bar, since=t, until=t, ma_list=self._ma_list)
+        since = t
+        until = t + timedelta(milliseconds=1)
+        index_list = self._index_chart.query(ccy=ccy, bar=self._bar, since=since, until=until, ma_list=self._ma_list)
         index = index_list[-1]
         return Score(ccy=ccy, t=index.t, v=self._calc_score(index), p=index.ma[1], atr=index.atr)
 

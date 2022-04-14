@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 
@@ -16,26 +16,31 @@ class TestRepo:
         repo.save(candles=[candlestick1, candlestick2])
         return repo, [candlestick1, candlestick2]
 
-    def test_save(self, setup):
+    def test_query(self, setup):
         repo, candlesticks = setup
         res = repo.query()
         assert len(res) == 2
         assert res[0].__dict__ == candlesticks[0].__dict__
         assert res[1].__dict__ == candlesticks[1].__dict__
 
-    def test_save_no_data(self, setup):
-        repo = Repo(ccy=CCY_BTC, bar=BAR_1D)
-        res = repo.query(until=datetime(year=2000, month=1, day=1))
-        assert len(res) == 0
-
-    def test_save_partial(self, setup):
+    def test_query_no_data(self, setup):
         repo, candlesticks = setup
-        res = repo.query(until=datetime(year=2022, month=4, day=1))
-        assert len(res) == 1
-        assert res[0].__dict__ == candlesticks[0].__dict__
+        assert len(repo.query(until=min([c.t() for c in candlesticks]))) == 0
+        assert len(repo.query(since=max([c.t() for c in candlesticks]) + timedelta(milliseconds=1))) == 0
 
-    def test_save_partial_2(self, setup):
+    def test_query_partial(self, setup):
         repo, candlesticks = setup
-        res = repo.query(since=datetime(year=2022, month=4, day=3))
+        # 比较小的那个bar < until 则该bar会被选中
+        min_candlestick_t = min([c.t() for c in candlesticks])
+        until = min_candlestick_t + timedelta(milliseconds=1)
+        res = repo.query(until=until)
         assert len(res) == 1
-        assert res[0].__dict__ == candlesticks[1].__dict__
+        assert res[0].t() == min_candlestick_t
+
+    def test_query_partial_2(self, setup):
+        repo, candlesticks = setup
+        max_candlestick_t = max([c.t() for c in candlesticks])
+        since = max_candlestick_t
+        res = repo.query(since=since)
+        assert len(res) == 1
+        assert res[0].t() == max_candlestick_t
