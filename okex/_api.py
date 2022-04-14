@@ -11,13 +11,18 @@ from okex import _secret, _proxy, _host
 import model
 
 
-def query(ccy: str = None, since: datetime = None, until: datetime = None, bar: str = None):
-    # 故意偏移1毫秒，以确保这个时间也被包含在内
-    ccy = (ccy or model.CCY_BTC)
-    since = (since or datetime(year=2022, month=1, day=1)) + timedelta(milliseconds=-1)
-    until = (until or datetime.utcnow()) + + timedelta(milliseconds=1)
-    bar = (bar or model.BAR_1D)
+def query(ccy: str, bar: str, since: datetime, until: datetime):
+    """
+    查询指定 ccy ，指定 bar ，开始时间位于 [since, until) （半闭半开区间）的K线数据。
+    注意，since和until只限制了K柱开始时刻。K柱结束时刻不限。
+    :param ccy: 货币名称。
+    :param bar: k柱宽度
+    :param since: K柱开始时刻 >= since
+    :param until: K柱开始时刻 < until
+    :return:
+    """
     host = _host.url
+    since += timedelta(milliseconds=-1)
     request_path = "/api/v5/market/candles"
     url = urljoin(host, request_path)
     req_timestamp = get_timestamp()
