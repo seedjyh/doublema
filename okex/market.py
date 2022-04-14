@@ -34,7 +34,7 @@ class Market(model.Market):
         else:
             if res[0].t() > since:
                 api_res += _api.query(ccy=ccy, bar=bar, since=since, until=res[0].t())
-            if res[-1].t() < until:
+            if res[-1].t() + bar_to_timedelta(bar) < until:
                 api_res += _api.query(ccy=ccy, bar=bar, since=res[-1].t() + timedelta(milliseconds=1), until=until)
         saving_res = [c for c in api_res if c.t() + bar_timedelta <= now]
         repo.save(candles=saving_res)
