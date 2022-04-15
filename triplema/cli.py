@@ -142,6 +142,7 @@ class Options:
         self.price = None
         self.crypto = None
         self.usdt = None
+        self.since = None
 
 
 def get_options(argv) -> Options:
@@ -154,6 +155,7 @@ def get_options(argv) -> Options:
         ("p:", "price="),
         ("c:", "crypto="),
         ("u:", "usdt="),
+        ("s:", "since="),
     ]
     short_opts = "".join([s for s, l in opt_define])
     long_opts = [l for s, l in opt_define]
@@ -165,6 +167,8 @@ def get_options(argv) -> Options:
             options.crypto = float(v)
         elif k in ("-u", "--usdt"):
             options.usdt = float(v)
+        elif k in ("-s", "--since"):
+            options.since = datetime.strptime(v, "%Y-%m-%d %H:%M:%S")
         else:
             raise Exception("unknown:" + k)
     return options
