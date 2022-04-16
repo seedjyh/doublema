@@ -29,3 +29,4 @@ def test_query_partial():
                                           h=46707.8, l=44219.6, c=46529.6).__dict__
     assert res[8].__dict__ == Candlestick(t=datetime(year=2022, month=4, day=9), o=43649.3,
                                           h=43716.0, l=42112.0, c=42280.0).__dict__
+

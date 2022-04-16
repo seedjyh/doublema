@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 import getopt
+import sqlite3
 import sys
 from datetime import datetime, timedelta
 
 import display
 import model
 import okex.market
+import okex.trade
 import triplema._position
-from triplema import _position, _index, _score, _playback
+from triplema import _position, _index, _score, _playback, _trade
 
 _db = "triplema.sqlite_db"
 _market_db = "triplema_okex.sqlite_db"
@@ -16,20 +18,23 @@ _ma_list = [1, 5, 13, 34]
 
 
 def set_position(ccy: str, crypto: float, usdt: float):
+    db_conn = sqlite3.connect(database=_db)
     try:
-        triplema._position.PositionRepository(db=_db).set(p=model.Position(ccy=ccy, crypto=crypto, usdt=usdt))
+        triplema._position.Repository(db_conn=db_conn).set(p=model.Position(ccy=ccy, crypto=crypto, usdt=usdt))
     except Exception as e:
         print("ERR: exception {}".format(e))
         raise e
+    finally:
+        db_conn.close()
 
 
-def buy_position(ccy: str, price: float, crypto: float):
+def _buy_position(db_conn, ccy: str, price: float, crypto: float):
     try:
-        repo = triplema._position.PositionRepository(db=_db)
+        repo = triplema._position.Repository(db_conn=db_conn)
         raw_position = repo.query(ccy=ccy)
         cost = crypto * price
         if cost > raw_position.usdt:
-            raise Exception("no enough usdt")
+            cost = raw_position.usdt
         new_position = model.Position(
             ccy=raw_position.ccy,
             crypto=raw_position.crypto + crypto,
@@ -43,9 +48,9 @@ def buy_position(ccy: str, price: float, crypto: float):
         print("ERR: exception {}".format(e))
 
 
-def sell_position(ccy: str, price: float, crypto: float):
+def _sell_position(db_conn, ccy: str, price: float, crypto: float):
     try:
-        repo = triplema._position.PositionRepository(db=_db)
+        repo = triplema._position.Repository(db_conn=db_conn)
         raw_position = repo.query(ccy=ccy)
         receive = crypto * price
         if crypto > raw_position.crypto:
@@ -81,6 +86,7 @@ def show_position(ccy: str):
 
 
 def get_advice(ccy: str):
+    db_conn = sqlite3.connect(database=_db)
     try:
         displayer = display.Displayer()
         fields = ["id", "operation", "ccy", "price", "amount", "usdt"]
@@ -88,8 +94,8 @@ def get_advice(ccy: str):
         evaluator = _score.Evaluator(source=okex.market.Market(db=_market_db), bar=_bar, ma_list=_ma_list)
         now = datetime.now()
         if ccy == "all":
-            for p in _position.PositionRepository(db=_db).query_all():
-                trade = evaluator.get_advice_one(raw_position=_position.PositionRepository(db=_db).query(ccy=p.ccy),
+            for p in _position.Repository(db_conn=db_conn).query_all():
+                trade = evaluator.get_advice_one(raw_position=_position.Repository(db_conn=db_conn).query(ccy=p.ccy),
                                                  now=now)
                 lines.append({
                     "id": len(lines) + 1,
@@ -100,7 +106,7 @@ def get_advice(ccy: str):
                     "usdt": "{:+.8f} usdt".format(-trade.crypto * trade.price),
                 })
         else:
-            trade = evaluator.get_advice_one(raw_position=_position.PositionRepository(db=_db).query(ccy=ccy), now=now)
+            trade = evaluator.get_advice_one(raw_position=_position.Repository(db_conn=db_conn).query(ccy=ccy), now=now)
             lines.append({
                 "id": len(lines) + 1,
                 "operation": trade.operation(),
@@ -113,6 +119,8 @@ def get_advice(ccy: str):
     except Exception as e:
         print("ERR: exception {}".format(e))
         raise e
+    finally:
+        db_conn.close()
 
 
 def playback(ccy: str):
@@ -135,10 +143,33 @@ def playback(ccy: str):
     displayer.display(fields=fields, lines=lines)
 
 
+def sync_trade():
+    # last_bill_id = "435230091285774338"
+    db_conn = sqlite3.connect(database=_db)
+    trade_repo = _trade.Repository(db_conn=db_conn)
+    try:
+        try:
+            last_bill_id = trade_repo.get_last().bill_id
+        except model.NoSuchRecord:
+            last_bill_id = None
+        for t in okex.trade.query(last_bill_id=last_bill_id):
+            if t.crypto > 0:
+                _buy_position(db_conn=db_conn, ccy=t.ccy, price=t.price, crypto=t.crypto)
+            else:
+                _buy_position(db_conn=db_conn, ccy=t.ccy, price=t.price, crypto=-t.crypto)
+            trade_repo.append(t)
+    finally:
+        db_conn.close()
+
+
+# api above...
+# opt below...
+
+
 class Options:
     def __init__(self):
         self.operation = None
-        self.ccy = None
+        self.target = None
         self.price = None
         self.crypto = None
         self.usdt = None
@@ -150,7 +181,7 @@ def get_options(argv) -> Options:
     # todo: 检查参数值合法性
     options = Options()
     options.operation = argv[0]
-    options.ccy = argv[1]
+    options.target = argv[1]
     opt_define = [
         ("p:", "price="),
         ("c:", "crypto="),
@@ -174,16 +205,16 @@ def get_options(argv) -> Options:
     return options
 
 
+
 opt = get_options(sys.argv[1:])
 if opt.operation == "set":
-    set_position(ccy=opt.ccy, crypto=opt.crypto, usdt=opt.usdt)
-elif opt.operation == "buy":
-    buy_position(ccy=opt.ccy, price=opt.price, crypto=opt.crypto)
-elif opt.operation == "sell":
-    sell_position(ccy=opt.ccy, price=opt.price, crypto=opt.crypto)
+    set_position(ccy=opt.target, crypto=opt.crypto, usdt=opt.usdt)
 elif opt.operation == "show":
-    show_position(ccy=opt.ccy)
+    show_position(ccy=opt.target)
 elif opt.operation == "advice":
-    get_advice(ccy=opt.ccy)
+    get_advice(ccy=opt.target)
 elif opt.operation == "playback":
-    playback(ccy=opt.ccy)
+    playback(ccy=opt.target)
+elif opt.operation == "sync":
+    if opt.target == "trade":
+        sync_trade()

@@ -84,7 +84,7 @@ class NoSuchRecord(Exception):
 
 
 class Trade:
-    def __init__(self, ccy: str, price: float, crypto: float):
+    def __init__(self, ccy: str, price: float, crypto: float, bill_id: str = ""):
         """
         交易参数
         :param ccy: 仓位名称，通常是加密货币名，如 ”btc“
@@ -94,6 +94,7 @@ class Trade:
         self.ccy = ccy
         self.price = float(price)
         self.crypto = float(crypto)
+        self.bill_id = bill_id
         if abs(price * crypto) < 1e-3:
             self.crypto = 0
 

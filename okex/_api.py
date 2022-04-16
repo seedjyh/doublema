@@ -103,3 +103,56 @@ def make_unix_millisecond(timestamp: datetime) -> str:
     :return:
     """
     return str(round(timestamp.timestamp() * 1000.0))
+
+
+def query_trade(last_bill_id: str) -> []:
+    """
+    查询last_bill_id之后的、所有成交了的币币交易。
+    :param last_bill_id: 上一次的最后的账单ID。（注意，区别于订单ID ordId ）
+    :return: a list of model.Trade
+    """
+    host = _host.url
+    request_path = "/api/v5/trade/fills"
+    # 这个接口要求将查询参数写入签名的加密串
+    request_path += "?instType=SPOT"
+    if last_bill_id is not None:
+        request_path += "&before=" + last_bill_id
+    print(">>>> request_path", request_path)
+    url = urljoin(host, request_path)
+    req_timestamp = get_timestamp()
+    signature = make_signature(
+        raw=req_timestamp + "GET" + request_path,
+        secret_key=_secret.secret_key,
+    )
+    ok_headers = {
+        "OK-ACCESS-KEY": _secret.api_key,
+        "OK-ACCESS-SIGN": signature,
+        "OK-ACCESS-TIMESTAMP": req_timestamp,
+        "OK-ACCESS-PASSPHRASE": _secret.passphrase,
+    }
+    std_headers = {
+        "Content-Type": "application/json"
+    }
+    headers = {
+        **ok_headers,
+        **std_headers,
+    }
+    proxies = {
+        "http": _proxy.url,
+        "https": _proxy.url,
+    }
+    rsp = requests.get(url=url, headers=headers, proxies=proxies)
+    if rsp.status_code != 200:
+        raise Exception("http status code {} body {}".format(rsp.status_code, rsp.json()))
+    body = rsp.json()
+    if body.get("code") != "0":
+        raise Exception("response code {}".format(body))
+    trades = []
+    for t in body.get("data"):
+        trades.append(model.Trade(
+            ccy=t["instId"].split("-")[0].lower(),
+            price=float(t["fillPx"]),
+            crypto=float(t["fillSz"]) * (1.0 if t["side"] == "buy" else -1.0),
+            bill_id=t["billId"],
+        ))
+    return trades
