@@ -96,12 +96,28 @@ class Trade:
         self.crypto = float(crypto)
         self.bill_id = bill_id
         if abs(price * crypto) < 1e-3:
-            self.crypto = 0
+            self.crypto = 0.0
 
     def operation(self) -> str:
-        if abs(self.price * self.crypto) < 1e-2:
+        if self.no_op():
             return "--"
         elif self.crypto > 0:
             return "buy"
         else:
             return "sell"
+
+    def price_desc(self, fmt: str):
+        return (fmt + " usdt/{}").format(self.price, self.ccy)
+
+    def amount_desc(self, fmt: str):
+        if self.no_op():
+            return "--"
+        return (fmt + " {}").format(self.crypto, self.ccy)
+
+    def usdt_desc(self, fmt: str):
+        if self.no_op():
+            return "--"
+        return (fmt + " usdt").format(-self.crypto * self.price)
+
+    def no_op(self) -> bool:
+        return abs(self.price * self.crypto) < 1e-2

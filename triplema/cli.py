@@ -102,9 +102,9 @@ def get_advice(ccy: str):
                     "id": len(lines) + 1,
                     "operation": trade.operation(),
                     "ccy": trade.ccy,
-                    "price": "{:.8f} usdt/{}".format(trade.price, trade.ccy),
-                    "amount": "{:+.8f} {}".format(trade.crypto, trade.ccy),
-                    "usdt": "{:+.8f} usdt".format(-trade.crypto * trade.price),
+                    "price": trade.price_desc(fmt="{:.8f}"),
+                    "amount": trade.amount_desc(fmt="{:+.8f}"),
+                    "usdt": trade.usdt_desc(fmt="{:+.8f}"),
                 })
         else:
             trade = evaluator.get_advice_one(raw_position=_position.Repository(db_conn=db_conn).query(ccy=ccy), now=now)
@@ -112,9 +112,9 @@ def get_advice(ccy: str):
                 "id": len(lines) + 1,
                 "operation": trade.operation(),
                 "ccy": trade.ccy,
-                "price": "{:.8f} usdt/{}".format(trade.price, trade.ccy),
-                "amount": "{:+.8f} {}".format(trade.crypto, trade.ccy),
-                "usdt": "{:+.8f} usdt".format(-trade.crypto * trade.price),
+                "price": trade.price_desc(fmt="{:.8f}"),
+                "amount": trade.amount_desc(fmt="{:+.8f}"),
+                "usdt": trade.usdt_desc(fmt="{:+.8f}"),
             })
         displayer.display(fields=fields, lines=lines)
     except Exception as e:
