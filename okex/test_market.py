@@ -15,10 +15,12 @@ def db_name():
     db_name = "test.sqlite_db"
     if os.path.exists(path=db_name):
         os.remove(path=db_name)
+    db_conn = sqlite3.connect(database=db_name)
+    market.set_db_conn(db_conn)
     yield db_name
+    db_conn.close()
     if os.path.exists(path=db_name):
         os.remove(path=db_name)
-    market.set_db_conn(sqlite3.connect(database=db_name))
 
 
 def test_query(db_name):
