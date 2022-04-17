@@ -4,6 +4,11 @@ from datetime import datetime
 
 from model import Candlestick
 
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 _db_name = "okex.sqlite_db"
 _module_db_conn = sqlite3.connect(database=_db_name)
 
@@ -45,9 +50,9 @@ class MarketRepo:
         )
         sql += "order by timestamp"
         res = []
-        # print("query sql=", sql)
+        logger.debug("query sql={}".format(sql))
         for row in cur.execute(sql):
-            # print("query row>", row)
+            logger.debug("query row={}".format(row))
             res.append(Candlestick(
                 t=self._str_to_timestamp(row[0]),
                 o=row[1],
@@ -66,9 +71,9 @@ class MarketRepo:
             self._table_name,
             '"' + self._timestamp_to_str(t) + '"',
         )
-        # print("query sql=", sql)
+        logger.debug("query sql={}".format(sql))
         for row in cur.execute(sql):
-            # print("query row>", row)
+            logger.debug("query row: {}".format(row))
             return Candlestick(
                 t=self._str_to_timestamp(row[0]),
                 o=row[1],
@@ -82,9 +87,9 @@ class MarketRepo:
     def _table_exist(self, table_name: str):
         cur = self._db_conn.cursor()
         sql = "SELECT name FROM sqlite_master WHERE type='table' AND name='{}'".format(table_name)
-        # print("table exist sql=", sql)
+        logger.debug("table exist sql={}".format(sql))
         for row in cur.execute(sql):
-            # print("table exist row>", row)
+            logger.debug("table exist row: {}".format(row))
             return True
         else:
             return False  # todo: check
@@ -100,9 +105,9 @@ class MarketRepo:
                 'closing' FLOAT
             )
             """.format(table_name)
-        # print("create table sql=", sql)
+        logger.debug("create table sql={}".format(sql))
         for row in cur.execute(sql):
-            print("create table row>", row)
+            logger.debug("create table row={}".format(row))
 
     @staticmethod
     def table_name(ccy: str, bar: str) -> str:
@@ -127,8 +132,7 @@ class MarketRepo:
             c.c(),
         )
         res = cur.execute(sql)
-        # print("insert one sql=", sql)
-        # print("insert one res=", res)
+        logger.debug("insert one, sql={}, res={}".format(sql, res))
 
 
 class NoSuchRecord(Exception):
