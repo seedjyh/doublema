@@ -20,13 +20,13 @@ def bar_to_timedelta(bar) -> timedelta:
 
 
 class Market(model.Market):
-    def __init__(self, db: str = ":memory:"):
-        self._db = db
+    def __init__(self, db_conn=None):
+        self._db_conn = db_conn
 
     def query(self, ccy: str, bar: str, since: datetime, until: datetime):
         now = datetime.now()
         bar_timedelta = bar_to_timedelta(bar)
-        repo = _sqlite.Repo(ccy=ccy, bar=bar, db=self._db)
+        repo = _sqlite.MarketRepo(ccy=ccy, bar=bar, db_conn=self._db_conn)
         res = repo.query(since=since, until=until)
         api_res = []
         if len(res) == 0:

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import sqlite3
 from datetime import datetime, timedelta
 
 import pytest
@@ -21,7 +22,7 @@ def db_name():
 
 class TestMarket:
     def test_query(self, db_name):
-        m = Market(db=db_name)
+        m = Market(db_conn=sqlite3.connect(database=":memory:"))
         assert len(m.query(ccy=CCY_BTC, bar=BAR_1D,
                            since=datetime(year=2022, month=4, day=3),
                            until=datetime(year=2022, month=4, day=4))) == 1
@@ -48,13 +49,14 @@ class TestMarket:
         为了确保candle也不会被写入数据库，我加了一个检查。
         :return:
         """
+        db_conn = sqlite3.connect(database=":memory:")
         since = datetime(year=2022, month=4, day=3, hour=12, minute=0, second=0)
         until = datetime(year=2022, month=4, day=5, hour=12, minute=0, second=0)
-        market_res = Market(db=db_name).query(ccy=CCY_BTC, bar=BAR_1D, since=since, until=until)
+        market_res = Market(db_conn=db_conn).query(ccy=CCY_BTC, bar=BAR_1D, since=since, until=until)
         assert len(market_res) == 2
         assert market_res[0].t() == datetime(year=2022, month=4, day=4, hour=0, minute=0, second=0)
         assert market_res[1].t() == datetime(year=2022, month=4, day=5, hour=0, minute=0, second=0)
-        repo = _sqlite.Repo(ccy=CCY_BTC, bar=BAR_1D, db=db_name)
+        repo = _sqlite.MarketRepo(ccy=CCY_BTC, bar=BAR_1D, db_conn=db_conn)
         db_res = repo.query(since=since, until=until + timedelta(days=2))
         assert len(db_res) == 2
         assert db_res[0].t() == datetime(year=2022, month=4, day=4, hour=0, minute=0, second=0)
@@ -71,21 +73,15 @@ class TestMarket:
         为了确保candle也不会被写入数据库，我加了一个检查。
         :return:
         """
+        db_conn = sqlite3.connect(database=":memory:")
         since = datetime(year=2022, month=4, day=4, hour=0, minute=0, second=0)
         until = datetime(year=2022, month=4, day=6, hour=0, minute=0, second=0)
-        market_res = Market(db=db_name).query(ccy=CCY_BTC, bar=BAR_1D, since=since, until=until)
+        market_res = Market(db_conn=db_conn).query(ccy=CCY_BTC, bar=BAR_1D, since=since, until=until)
         assert len(market_res) == 2
         assert market_res[0].t() == datetime(year=2022, month=4, day=4, hour=0, minute=0, second=0)
         assert market_res[1].t() == datetime(year=2022, month=4, day=5, hour=0, minute=0, second=0)
-        repo = _sqlite.Repo(ccy=CCY_BTC, bar=BAR_1D, db=db_name)
+        repo = _sqlite.MarketRepo(ccy=CCY_BTC, bar=BAR_1D, db_conn=db_conn)
         db_res = repo.query(since=since, until=until + timedelta(days=2))
         assert len(db_res) == 2
         assert db_res[0].t() == datetime(year=2022, month=4, day=4, hour=0, minute=0, second=0)
         assert db_res[1].t() == datetime(year=2022, month=4, day=5, hour=0, minute=0, second=0)
-
-    def test_query_not_complete(self):
-        m = Market()
-        since = datetime(year=2022, month=4, day=10)
-        until = datetime.now()
-        res = m.query(ccy=CCY_BTC, bar=BAR_1D, since=since, until=until)
-        assert len(res) == 5

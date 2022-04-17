@@ -12,7 +12,7 @@ import triplema._position
 from triplema import _position, _index, _score, _playback, _trade
 
 _db = "triplema.sqlite_db"
-_market_db = "triplema_okex.sqlite_db"
+
 _bar = model.BAR_1D
 _ma_list = [1, 5, 13, 34]
 
@@ -91,7 +91,7 @@ def get_advice(ccy: str):
         displayer = display.Displayer()
         fields = ["id", "operation", "ccy", "price", "amount", "usdt"]
         lines = []
-        evaluator = _score.Evaluator(source=okex.market.Market(db=_market_db), bar=_bar, ma_list=_ma_list)
+        evaluator = _score.Evaluator(source=okex.market.Market(), bar=_bar, ma_list=_ma_list)
         now = datetime.now()
         if ccy == "all":
             for p in _position.Repository(db_conn=db_conn).query_all():
@@ -127,7 +127,7 @@ def playback(ccy: str):
     displayer = display.Displayer()
     fields = ["ts", "begin crypto", "begin usdt", "closing price", "final total", "final score", "atr"]
     lines = []
-    market = okex.market.Market(db=_market_db)
+    market = okex.market.Market()
     since = datetime(year=2022, month=1, day=1)
     until = datetime.today()
     for record in _playback.playback(ccy=ccy, market=market, bar=_bar, ma_list=_ma_list, since=since, until=until):
