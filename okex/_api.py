@@ -105,7 +105,7 @@ def make_unix_millisecond(timestamp: datetime) -> str:
     return str(round(timestamp.timestamp() * 1000.0))
 
 
-def query_trade(last_bill_id: str) -> []:
+def query_trade_fills(last_bill_id: str) -> []:
     """
     查询last_bill_id之后的、所有成交了的币币交易。
     :param last_bill_id: 上一次的最后的账单ID。（注意，区别于订单ID ordId ）

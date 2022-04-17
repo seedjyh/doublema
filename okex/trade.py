@@ -10,7 +10,7 @@ def query(last_bill_id: str = None):
     :param last_bill_id: 上次查询的最终账单号。本次查询从这之后开始。
     :return:
     """
-    trades = _api.query_trade(last_bill_id=last_bill_id)
+    trades = _api.query_trade_fills(last_bill_id=last_bill_id)
     for t in trades:
         print(t.__dict__)
     return trades
