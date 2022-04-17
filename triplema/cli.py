@@ -8,61 +8,62 @@ import display
 import model
 import okex.market
 import okex.trade
-import triplema._position
-from triplema import _position, _index, _score, _playback, _trade
+from triplema import _position, _index, _score, _playback
 
 _db = "triplema.sqlite_db"
+_db_conn = sqlite3.connect(database=_db)
 
 _bar = model.BAR_1D
 _ma_list = [1, 5, 13, 34]
 
+_position.set_db_conn(_db_conn)
+
 
 def set_position(ccy: str, crypto: float, usdt: float):
-    db_conn = sqlite3.connect(database=_db)
     try:
-        triplema._position.Repository(db_conn=db_conn).set(p=model.Position(ccy=ccy, crypto=crypto, usdt=usdt))
+        _position.Repository().set(p=_position.Position(ccy=ccy, crypto=crypto, usdt=usdt))
     except Exception as e:
         print("ERR: exception {}".format(e))
         raise e
-    finally:
-        db_conn.close()
 
 
-def _buy_position(db_conn, ccy: str, price: float, crypto: float):
+def _buy_position(ccy: str, price: float, crypto: float, last_bill_id: str):
     try:
-        repo = triplema._position.Repository(db_conn=db_conn)
+        repo = _position.Repository(db_conn=_db_conn)
         raw_position = repo.query(ccy=ccy)
         cost = crypto * price
         if cost > raw_position.usdt:
             cost = raw_position.usdt
-        new_position = model.Position(
+        new_position = _position.Position(
             ccy=raw_position.ccy,
             crypto=raw_position.crypto + crypto,
             usdt=raw_position.usdt - cost,
+            last_bill_id=last_bill_id,
         )
         repo.set(p=new_position)
         print("OK.")
-    except model.NoSuchRecord:
+    except _position.NoSuchRecord:
         print("ERR: No position record for ccy {}".format(ccy))
     except Exception as e:
         print("ERR: exception {}".format(e))
 
 
-def _sell_position(db_conn, ccy: str, price: float, crypto: float):
+def _sell_position(ccy: str, price: float, crypto: float, last_bill_id: str):
     try:
-        repo = triplema._position.Repository(db_conn=db_conn)
+        repo = _position.Repository(db_conn=_db_conn)
         raw_position = repo.query(ccy=ccy)
         receive = crypto * price
         if crypto > raw_position.crypto:
             raise Exception("no enough {}".format(ccy))
-        new_position = model.Position(
+        new_position = _position.Position(
             ccy=raw_position.ccy,
             crypto=raw_position.crypto - crypto,
             usdt=raw_position.usdt + receive,
+            last_bill_id=last_bill_id,
         )
         repo.set(p=new_position)
         print("OK.")
-    except model.NoSuchRecord:
+    except _position.NoSuchRecord:
         print("ERR: No position record for ccy {}".format(ccy))
     except Exception as e:
         print("ERR: exception {}".format(e))
@@ -71,9 +72,9 @@ def _sell_position(db_conn, ccy: str, price: float, crypto: float):
 def show_position(ccy: str):
     try:
         displayer = display.Displayer()
-        fields = ["ccy", "crypto", "usdt"]
+        fields = ["ccy", "crypto", "usdt", "last_bill_id"]
         lines = []
-        repo = triplema._position.PositionRepository(db=_db)
+        repo = _position.Repository(db_conn=_db_conn)
         if ccy == "all":
             for p in repo.query_all():
                 lines.append(p.__dict__)
@@ -145,21 +146,15 @@ def playback(ccy: str):
 
 def sync_trade():
     # last_bill_id = "435230091285774338"
-    db_conn = sqlite3.connect(database=_db)
-    trade_repo = _trade.Repository(db_conn=db_conn)
     try:
-        try:
-            last_bill_id = trade_repo.get_last().bill_id
-        except model.NoSuchRecord:
-            last_bill_id = None
-        for t in okex.trade.query(last_bill_id=last_bill_id):
-            if t.crypto > 0:
-                _buy_position(db_conn=db_conn, ccy=t.ccy, price=t.price, crypto=t.crypto)
-            else:
-                _buy_position(db_conn=db_conn, ccy=t.ccy, price=t.price, crypto=-t.crypto)
-            trade_repo.append(t)
-    finally:
-        db_conn.close()
+        last_bill_id = _position.Repository().get_last_bill_id()
+    except _position.NoSuchRecord:
+        last_bill_id = None
+    for t in okex.trade.query(last_bill_id=last_bill_id):
+        if t.crypto > 0:
+            _buy_position(ccy=t.ccy, price=t.price, crypto=t.crypto, last_bill_id=t.bill_id)
+        else:
+            _buy_position(ccy=t.ccy, price=t.price, crypto=-t.crypto, last_bill_id=t.bill_id)
 
 
 # api above...

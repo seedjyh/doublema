@@ -50,32 +50,32 @@ class Market(metaclass=abc.ABCMeta):
         """
         pass
 
-
-class Position:
-    def __init__(self, ccy: str, crypto: float, usdt: float):
-        self.ccy = ccy
-        self.crypto = crypto
-        self.usdt = usdt
-
-    def total(self, price: float):
-        return self.usdt + self.crypto * price
-
-    def score(self, price: float):
-        return 1.0 - self.usdt / self.total(price)
-
-
-class PositionRepository(metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    def set(self, p: Position):
-        pass
-
-    @abc.abstractmethod
-    def query(self, ccy: str):
-        pass
-
-    @abc.abstractmethod
-    def query_all(self):
-        pass
+#
+# class Position:
+#     def __init__(self, ccy: str, crypto: float, usdt: float):
+#         self.ccy = ccy
+#         self.crypto = crypto
+#         self.usdt = usdt
+#
+#     def total(self, price: float):
+#         return self.usdt + self.crypto * price
+#
+#     def score(self, price: float):
+#         return 1.0 - self.usdt / self.total(price)
+#
+#
+# class PositionRepository(metaclass=abc.ABCMeta):
+#     @abc.abstractmethod
+#     def set(self, p: Position):
+#         pass
+#
+#     @abc.abstractmethod
+#     def query(self, ccy: str):
+#         pass
+#
+#     @abc.abstractmethod
+#     def query_all(self):
+#         pass
 
 
 class NoSuchRecord(Exception):

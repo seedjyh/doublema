@@ -36,7 +36,7 @@ def _sync():
     repo = Repo(db_conn=_db_conn)
     try:
         last_bill_id = repo.get_last().bill_id
-    except model.NoSuchRecord:
+    except NoSuchRecord:
         last_bill_id = None
     for t in _api.query_trade_fills(last_bill_id=last_bill_id):
         repo.append(t)
@@ -65,7 +65,7 @@ class Repo:
         for row in cur.execute(sql):
             return model.Trade(bill_id=row[0], ccy=row[1], price=float(row[2]), crypto=float(row[3]))
         else:
-            raise model.NoSuchRecord(sql=sql)
+            raise NoSuchRecord(sql=sql)
 
     def query(self, last_bill_id: str):
         cur = self._conn.cursor()
@@ -131,3 +131,8 @@ class Repo:
             '"' + t.bill_id + '"',
         )
         return cur.execute(sql)
+
+
+class NoSuchRecord(Exception):
+    def __init__(self, sql):
+        self.sql = sql

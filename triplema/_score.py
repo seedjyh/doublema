@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta
 
 import model
-from triplema import _index
+from triplema import _index, _position
 
 
 class Score:
@@ -21,7 +21,7 @@ class Score:
         self.p = p
         self.atr = atr
 
-    def get_trade(self, raw_position: model.Position) -> model.Trade:
+    def get_trade(self, raw_position: _position.Position) -> model.Trade:
         total = raw_position.total(price=self.p)
         expect_crypto = total * self.v / self.p
         if self._need_trade(trade_usdt=(raw_position.crypto - expect_crypto) * self.p, total_usdt=total):
@@ -75,7 +75,7 @@ class Evaluator:
         index = index_list[-1]
         return Score(ccy=ccy, t=index.t, v=self._calc_score(index), p=index.ma[1], atr=index.atr)
 
-    def get_advice_one(self, raw_position: model.Position, now: datetime) -> model.Trade:
+    def get_advice_one(self, raw_position: _position.Position, now: datetime) -> model.Trade:
         """
 
         :param raw_position:
