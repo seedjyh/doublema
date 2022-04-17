@@ -2,6 +2,7 @@
 import base64
 import hashlib
 import hmac
+import logging
 from datetime import datetime, timedelta
 from urllib.parse import urljoin
 
@@ -9,6 +10,9 @@ import requests
 
 from okex import _secret, _proxy, _host
 import model
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def query_market_candles(ccy: str, bar: str, since: datetime, until: datetime):
@@ -21,37 +25,15 @@ def query_market_candles(ccy: str, bar: str, since: datetime, until: datetime):
     :param until: K柱开始时刻 < until
     :return:
     """
-    host = _host.url
-    since += timedelta(milliseconds=-1)
     request_path = "/api/v5/market/candles"
-    url = urljoin(host, request_path)
-    req_timestamp = get_timestamp()
-    signature = make_signature(
-        raw=req_timestamp + "GET" + request_path,
-        secret_key=_secret.secret_key,
-    )
-    ok_headers = {
-        "OK-ACCESS-KEY": _secret.api_key,
-        "OK-ACCESS-SIGN": signature,
-        "OK-ACCESS-TIMESTAMP": req_timestamp,
-        "OK-ACCESS-PASSPHRASE": _secret.passphrase,
-    }
-    std_headers = {
-        "Content-Type": "application/json"
-    }
-    headers = {
-        **ok_headers,
-        **std_headers,
-    }
+    url = _make_url(request_path=request_path)
+    headers = _make_headers(request_path=request_path)
+    proxies = _make_proxies()
     params = {
-        "instId": get_inst_id(ccy=ccy),
+        "instId": _get_inst_id(ccy=ccy),
         "bar": bar,
-        "before": make_unix_millisecond(since),
-        "after": make_unix_millisecond(until),
-    }
-    proxies = {
-        "http": _proxy.url,
-        "https": _proxy.url,
+        "before": _make_unix_millisecond(since + timedelta(milliseconds=-1)),
+        "after": _make_unix_millisecond(until),
     }
     rsp = requests.get(url=url, headers=headers, params=params, proxies=proxies)
     if rsp.status_code != 200:
@@ -72,75 +54,21 @@ def query_market_candles(ccy: str, bar: str, since: datetime, until: datetime):
     return candles
 
 
-def get_inst_id(ccy: str):
-    return "{}-USDT".format(ccy).upper()
-
-
-def make_signature(raw: str, secret_key: str) -> str:
-    """
-    Use b64encode, but NOT encodebytes, to avoid "\n"
-    :param raw:
-    :param secret_key:
-    :return:
-    """
-    return str(base64.b64encode(
-        hmac.new(bytes(secret_key, "utf-8"), msg=bytes(raw, 'utf-8'), digestmod=hashlib.sha256).digest()),
-        encoding="utf8")
-
-
-def get_timestamp() -> str:
-    """
-    获取当前的时间戳，YYYY-MM-DDThh:mm:ss.pppZ
-    :return:
-    """
-    return str(datetime.utcnow().isoformat()[:-3]) + "Z"
-
-
-def make_unix_millisecond(timestamp: datetime) -> str:
-    """
-    将 timestamp 转换成 unix 的毫秒数。str类型。
-    :param timestamp:
-    :return:
-    """
-    return str(round(timestamp.timestamp() * 1000.0))
-
-
 def query_trade_fills(last_bill_id: str) -> []:
     """
     查询last_bill_id之后的、所有成交了的币币交易。
-    :param last_bill_id: 上一次的最后的账单ID。（注意，区别于订单ID ordId ）
+    :param last_bill_id: 上一次的最后的账单ID。（注意，区别于订单ID ordId ）如果参数是None，会返回三天内的所有账单。
     :return: a list of model.Trade
     """
-    host = _host.url
     request_path = "/api/v5/trade/fills"
     # 这个接口要求将查询参数写入签名的加密串
     request_path += "?instType=SPOT"
     if last_bill_id is not None:
         request_path += "&before=" + last_bill_id
-    print(">>>> request_path", request_path)
-    url = urljoin(host, request_path)
-    req_timestamp = get_timestamp()
-    signature = make_signature(
-        raw=req_timestamp + "GET" + request_path,
-        secret_key=_secret.secret_key,
-    )
-    ok_headers = {
-        "OK-ACCESS-KEY": _secret.api_key,
-        "OK-ACCESS-SIGN": signature,
-        "OK-ACCESS-TIMESTAMP": req_timestamp,
-        "OK-ACCESS-PASSPHRASE": _secret.passphrase,
-    }
-    std_headers = {
-        "Content-Type": "application/json"
-    }
-    headers = {
-        **ok_headers,
-        **std_headers,
-    }
-    proxies = {
-        "http": _proxy.url,
-        "https": _proxy.url,
-    }
+    logger.debug("querying trade fills, request_path={}".format(request_path))
+    url = _make_url(request_path=request_path)
+    headers = _make_headers(request_path=request_path)
+    proxies = _make_proxies()
     rsp = requests.get(url=url, headers=headers, proxies=proxies)
     if rsp.status_code != 200:
         raise Exception("http status code {} body {}".format(rsp.status_code, rsp.json()))
@@ -156,3 +84,68 @@ def query_trade_fills(last_bill_id: str) -> []:
             bill_id=t["billId"],
         ))
     return trades
+
+
+def _get_inst_id(ccy: str):
+    return "{}-USDT".format(ccy).upper()
+
+
+def _make_signature(raw: str, secret_key: str) -> str:
+    """
+    Use b64encode, but NOT encodebytes, to avoid "\n"
+    :param raw:
+    :param secret_key:
+    :return:
+    """
+    return str(base64.b64encode(
+        hmac.new(bytes(secret_key, "utf-8"), msg=bytes(raw, 'utf-8'), digestmod=hashlib.sha256).digest()),
+        encoding="utf8")
+
+
+def _get_timestamp() -> str:
+    """
+    获取当前的时间戳，YYYY-MM-DDThh:mm:ss.pppZ
+    :return:
+    """
+    return str(datetime.utcnow().isoformat()[:-3]) + "Z"
+
+
+def _make_unix_millisecond(timestamp: datetime) -> str:
+    """
+    将 timestamp 转换成 unix 的毫秒数。str类型。
+    :param timestamp:
+    :return:
+    """
+    return str(round(timestamp.timestamp() * 1000.0))
+
+
+def _make_url(request_path: str):
+    return urljoin(_host.url, request_path)
+
+
+def _make_headers(request_path: str):
+    req_timestamp = _get_timestamp()
+    signature = _make_signature(
+        raw=req_timestamp + "GET" + request_path,
+        secret_key=_secret.secret_key,
+    )
+    ok_headers = {
+        "OK-ACCESS-KEY": _secret.api_key,
+        "OK-ACCESS-SIGN": signature,
+        "OK-ACCESS-TIMESTAMP": req_timestamp,
+        "OK-ACCESS-PASSPHRASE": _secret.passphrase,
+    }
+    std_headers = {
+        "Content-Type": "application/json"
+    }
+    return {
+        **ok_headers,
+        **std_headers,
+    }
+
+
+def _make_proxies():
+    return {
+        "http": _proxy.url,
+        "https": _proxy.url,
+    }
