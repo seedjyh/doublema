@@ -39,12 +39,12 @@ def query(ccy: str, bar: str, since: datetime, until: datetime):
     res = repo.query(since=since, until=until)
     api_res = []
     if len(res) == 0:
-        api_res += _api.query(ccy=ccy, bar=bar, since=since, until=until)
+        api_res += _api.query_market_candles(ccy=ccy, bar=bar, since=since, until=until)
     else:
         if res[0].t() > since:
-            api_res += _api.query(ccy=ccy, bar=bar, since=since, until=res[0].t())
+            api_res += _api.query_market_candles(ccy=ccy, bar=bar, since=since, until=res[0].t())
         if res[-1].t() + _bar_to_timedelta(bar) < until:
-            api_res += _api.query(ccy=ccy, bar=bar, since=res[-1].t() + timedelta(milliseconds=1), until=until)
+            api_res += _api.query_market_candles(ccy=ccy, bar=bar, since=res[-1].t() + timedelta(milliseconds=1), until=until)
     saving_res = [c for c in api_res if c.t() + bar_timedelta <= now]
     repo.save(candles=saving_res)
     res += api_res

@@ -2,11 +2,11 @@
 from datetime import datetime
 
 from model import CCY_BTC, Candlestick, BAR_1D
-from okex._api import query
+from okex._api import query_market_candles
 
 
 def test_query():
-    res = query(
+    res = query_market_candles(
         ccy=CCY_BTC, bar=BAR_1D,
         since=datetime(year=2022, month=4, day=1, hour=0, minute=0, second=0),
         until=datetime(year=2022, month=4, day=10, hour=0, minute=0, second=0),
@@ -19,7 +19,7 @@ def test_query():
 
 
 def test_query_partial():
-    res = query(
+    res = query_market_candles(
         ccy=CCY_BTC, bar=BAR_1D,
         since=datetime(year=2022, month=3, day=31, hour=12, minute=0, second=0),
         until=datetime(year=2022, month=4, day=9, hour=12, minute=0, second=0),

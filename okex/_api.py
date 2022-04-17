@@ -11,7 +11,7 @@ from okex import _secret, _proxy, _host
 import model
 
 
-def query(ccy: str, bar: str, since: datetime, until: datetime):
+def query_market_candles(ccy: str, bar: str, since: datetime, until: datetime):
     """
     查询指定 ccy ，指定 bar ，开始时间位于 [since, until) （半闭半开区间）的K线数据。
     注意，since和until只限制了K柱开始时刻。K柱结束时刻不限。
