@@ -54,11 +54,11 @@ def query_market_candles(ccy: str, bar: str, since: datetime, until: datetime):
     return candles
 
 
-def query_trade_fills(last_bill_id: str) -> []:
+def query_trade_fills(last_bill_id: str = None) -> []:
     """
     查询last_bill_id之后的、所有成交了的币币交易。
     :param last_bill_id: 上一次的最后的账单ID。（注意，区别于订单ID ordId ）如果参数是None，会返回三天内的所有账单。
-    :return: a list of model.Trade
+    :return: a list of model.Trade 按照账单ID顺序从小到大排列。
     """
     request_path = "/api/v5/trade/fills"
     # 这个接口要求将查询参数写入签名的加密串
@@ -83,6 +83,7 @@ def query_trade_fills(last_bill_id: str) -> []:
             crypto=float(t["fillSz"]) * (1.0 if t["side"] == "buy" else -1.0),
             bill_id=t["billId"],
         ))
+    trades.reverse()
     return trades
 
 
