@@ -25,6 +25,11 @@ class MarketRepo:
         self._db_conn.commit()
 
     def save(self, candles: []):
+        """
+        将所有candles保存到数据库。
+        :param candles: Candlestick列表
+        :return: 无
+        """
         for c in candles:
             self._save_one(c)
         self._db_conn.commit()
@@ -37,6 +42,12 @@ class MarketRepo:
             self._insert_one(candle)
 
     def query(self, since: datetime = None, until: datetime = None) -> []:
+        """
+        查询指定范围数据。
+        :param since:
+        :param until:
+        :return: Candlestick 列表
+        """
         cur = self._db_conn.cursor()
         since = since or datetime(year=2000, month=1, day=1)
         until = until or datetime(year=2099, month=1, day=1)
