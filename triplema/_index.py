@@ -14,7 +14,7 @@ class Index:
 
 
 class IndexChart:
-    def __init__(self, source=model.Market):
+    def __init__(self, source: model.Market):
         self._source = source
 
     def query(self, ccy: str, bar: str, since: datetime, until: datetime, ma_list: list):
