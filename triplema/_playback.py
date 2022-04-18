@@ -2,7 +2,7 @@
 from datetime import datetime
 
 import model
-from triplema import _score
+from triplema import _score, _position
 
 
 class Record:
@@ -27,7 +27,7 @@ class Record:
 
 
 def playback(ccy: str, market: model.Market, bar: str, ma_list: [], since: datetime, until: datetime) -> []:
-    p = model.Position(ccy=ccy, crypto=0, usdt=1000)
+    p = _position.Position(ccy=ccy, crypto=0, usdt=1000)
     evaluator = _score.Evaluator(source=market, bar=bar, ma_list=ma_list)
     for candle in market.query(ccy=ccy, bar=bar, since=since, until=until):
         price = candle.c()
