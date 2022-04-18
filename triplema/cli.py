@@ -30,45 +30,35 @@ def set_position(ccy: str, crypto: float, usdt: float):
 
 
 def _buy_position(ccy: str, price: float, crypto: float, last_bill_id: str):
-    try:
-        repo = _position.Repository(db_conn=_db_conn)
-        raw_position = repo.query(ccy=ccy)
-        cost = crypto * price
-        if cost > raw_position.usdt:
-            cost = raw_position.usdt
-        new_position = _position.Position(
-            ccy=raw_position.ccy,
-            crypto=raw_position.crypto + crypto,
-            usdt=raw_position.usdt - cost,
-            last_bill_id=last_bill_id,
-        )
-        repo.set(p=new_position)
-        print("OK.")
-    except _position.NoSuchRecord:
-        print("ERR: No position record for ccy {}".format(ccy))
-    except Exception as e:
-        print("ERR: exception {}".format(e))
+    repo = _position.Repository(db_conn=_db_conn)
+    raw_position = repo.query(ccy=ccy)
+    cost = crypto * price
+    if cost > raw_position.usdt:
+        cost = raw_position.usdt
+    new_position = _position.Position(
+        ccy=raw_position.ccy,
+        crypto=raw_position.crypto + crypto,
+        usdt=raw_position.usdt - cost,
+        last_bill_id=last_bill_id,
+    )
+    repo.set(p=new_position)
+    print("Bought. ccy={}, price={}, crypto={}, last_bill_id={}".format(ccy, price, crypto, last_bill_id))
 
 
 def _sell_position(ccy: str, price: float, crypto: float, last_bill_id: str):
-    try:
-        repo = _position.Repository(db_conn=_db_conn)
-        raw_position = repo.query(ccy=ccy)
-        receive = crypto * price
-        if crypto > raw_position.crypto:
-            raise Exception("no enough {}".format(ccy))
-        new_position = _position.Position(
-            ccy=raw_position.ccy,
-            crypto=raw_position.crypto - crypto,
-            usdt=raw_position.usdt + receive,
-            last_bill_id=last_bill_id,
-        )
-        repo.set(p=new_position)
-        print("OK.")
-    except _position.NoSuchRecord:
-        print("ERR: No position record for ccy {}".format(ccy))
-    except Exception as e:
-        print("ERR: exception {}".format(e))
+    repo = _position.Repository(db_conn=_db_conn)
+    raw_position = repo.query(ccy=ccy)
+    receive = crypto * price
+    if crypto > raw_position.crypto:
+        raise Exception("no enough {}".format(ccy))
+    new_position = _position.Position(
+        ccy=raw_position.ccy,
+        crypto=raw_position.crypto - crypto,
+        usdt=raw_position.usdt + receive,
+        last_bill_id=last_bill_id,
+    )
+    repo.set(p=new_position)
+    print("Sold. ccy={}, price={}, crypto={}, last_bill_id={}".format(ccy, price, crypto, last_bill_id))
 
 
 def show_position(ccy: str):
@@ -183,8 +173,7 @@ def sync_trade():
         if t.crypto > 0:
             _buy_position(ccy=t.ccy, price=t.price, crypto=t.crypto, last_bill_id=t.bill_id)
         else:
-            _buy_position(ccy=t.ccy, price=t.price, crypto=-t.crypto, last_bill_id=t.bill_id)
-
+            _sell_position(ccy=t.ccy, price=t.price, crypto=-t.crypto, last_bill_id=t.bill_id)
 
 # api above...
 # opt below...
