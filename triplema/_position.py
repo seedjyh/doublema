@@ -105,13 +105,21 @@ class Repository:
 
     def _update_row(self, p: Position):
         cur = self._conn.cursor()
-        sql = "UPDATE {} SET crypto={}, usdt={}, last_bill_id={} WHERE ccy={}".format(
-            self._table_name,
-            p.crypto,
-            p.usdt,
-            self._python_to_sqlite(p.last_bill_id),
-            '"' + p.ccy + '"',
-        )
+        if p.last_bill_id is None:
+            sql = "UPDATE {} SET crypto={}, usdt={} WHERE ccy={}".format(
+                self._table_name,
+                p.crypto,
+                p.usdt,
+                '"' + p.ccy + '"',
+            )
+        else:
+            sql = "UPDATE {} SET crypto={}, usdt={}, last_bill_id={} WHERE ccy={}".format(
+                self._table_name,
+                p.crypto,
+                p.usdt,
+                self._python_to_sqlite(p.last_bill_id),
+                '"' + p.ccy + '"',
+            )
         return cur.execute(sql)
 
     def get_last_bill_id(self):

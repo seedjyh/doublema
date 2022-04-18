@@ -18,6 +18,8 @@ _ma_list = [1, 5, 13, 34]
 
 _position.set_db_conn(_db_conn)
 
+MAX_LOSS = 2.0  # 一个单子最大允许亏损额
+
 
 def set_position(ccy: str, crypto: float, usdt: float):
     try:
@@ -70,17 +72,44 @@ def _sell_position(ccy: str, price: float, crypto: float, last_bill_id: str):
 
 
 def show_position(ccy: str):
+    fields = ["ccy", "crypto", "usdt", "last_bill_id", "price", "atr", "volatility", "total", "expect"]
+
+    def p2d(pos: _position.Position) -> dict:
+        index = index_chart.query_latest(ccy=p.ccy, bar=model.BAR_1D)
+        price = index.ma[1]
+        atr = index.atr
+        volatility = atr / price
+        total = price * p.crypto + p.usdt
+        d = p.__dict__
+        d["price"] = price
+        d["atr"] = atr
+        d["volatility"] = volatility
+        d["total"] = total
+        d["expect"] = MAX_LOSS / volatility
+        return d
+
     try:
         displayer = display.Displayer()
-        fields = ["ccy", "crypto", "usdt", "last_bill_id"]
         lines = []
         repo = _position.Repository(db_conn=_db_conn)
+        index_chart = _index.IndexChart(source=okex.market.Market())
         if ccy == "all":
             for p in repo.query_all():
-                lines.append(p.__dict__)
+                # index = index_chart.query_latest(ccy=p.ccy, bar=model.BAR_1D)
+                # d = p.__dict__
+                # price = index.ma[1]
+                # atr = index.atr
+                # volatility = atr / price
+                # total = price * p.crypto + p.usdt
+                # d["price"] = price
+                # d["atr"] = atr
+                # d["volatility"] = volatility
+                # d["total"] = total
+                # d["expect"] = MAX_LOSS / volatility
+                lines.append(p2d(p))
         else:
             p = repo.query(ccy=ccy)
-            lines.append(p.__dict__)
+            lines.append(p2d(p))
         displayer.display(fields=fields, lines=lines)
     except Exception as e:
         print("ERR: exception {}".format(e))
