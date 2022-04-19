@@ -6,7 +6,8 @@ from datetime import datetime, timedelta
 import pytest
 
 from okex import market
-from model import CCY_BTC, BAR_1D, Candlestick
+from model import Candlestick
+from const import BAR_1D, CCY_BTC
 
 
 @pytest.fixture(scope="function")

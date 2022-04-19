@@ -3,8 +3,7 @@ from datetime import datetime
 
 import triplema._index
 import okex.market
-from model import CCY_BTC, BAR_1D
-
+from const import BAR_1D, CCY_BTC
 
 # class TestMarket:
 #     def test_query(self):

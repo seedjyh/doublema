@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 
+import const
 import model
 
 ATR_RANGE = 20
@@ -38,16 +39,9 @@ class IndexChart:
 
     def query_latest(self, ccy: str, bar: str) -> Index:
         until = datetime.now()
-        since = until - self._bar_to_timedelta(bar) * 2
+        since = until - const.bar_to_timedelta(bar) * 2
         return self.query(ccy=ccy, bar=bar, since=since, until=until, ma_list=[1, ])[-1]
 
     @staticmethod
     def calc_average(arr: list):
         return sum([float(v) for v in arr]) / len(arr)
-
-    @staticmethod
-    def _bar_to_timedelta(bar) -> timedelta:
-        if bar == model.BAR_1D:
-            return timedelta(days=1)
-        else:
-            raise Exception("invalid bar {}".format(bar))

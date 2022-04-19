@@ -4,6 +4,7 @@ import sqlite3
 import sys
 from datetime import datetime, timedelta
 
+import const
 import display
 import model
 import okex.market
@@ -13,7 +14,7 @@ from triplema import _position, _index, _score, _playback
 _db = "triplema.sqlite_db"
 _db_conn = sqlite3.connect(database=_db)
 
-_bar = model.BAR_1D
+_bar = const.BAR_1D
 _ma_list = [1, 5, 13, 34]
 
 _position.set_db_conn(_db_conn)
@@ -65,7 +66,7 @@ def show_position(ccy: str):
     fields = ["ccy", "crypto", "usdt", "last_bill_id", "price", "atr", "volatility", "total", "expect"]
 
     def p2d(pos: _position.Position) -> dict:
-        index = index_chart.query_latest(ccy=p.ccy, bar=model.BAR_1D)
+        index = index_chart.query_latest(ccy=p.ccy, bar=const.BAR_1D)
         price = index.ma[1]
         atr = index.atr
         volatility = atr / price
@@ -149,7 +150,7 @@ def playback(ccy: str):
     lines = []
     market = okex.market.Market()
     since = datetime(year=2022, month=1, day=1)
-    until = datetime.today()
+    until = datetime.today() - const.bar_to_timedelta(_bar)
     for record in _playback.playback(ccy=ccy, market=market, bar=_bar, ma_list=_ma_list, since=since, until=until):
         lines.append({
             "ts": record.ts,
@@ -216,7 +217,6 @@ def get_options(argv) -> Options:
         else:
             raise Exception("unknown:" + k)
     return options
-
 
 
 opt = get_options(sys.argv[1:])

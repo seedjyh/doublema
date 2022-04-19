@@ -7,6 +7,8 @@ market 实现了 model.Market 接口访问Okex交易所并下载行情数据的�
 """
 import logging
 from datetime import datetime, timedelta
+
+import const
 import model
 from okex import _api
 
@@ -36,7 +38,7 @@ def query(ccy: str, bar: str, since: datetime, until: datetime):
     :return:
     """
     now = datetime.now()
-    bar_timedelta = _bar_to_timedelta(bar)
+    bar_timedelta = const.bar_to_timedelta(bar)
     repo = Repo(ccy=ccy, bar=bar, db_conn=_db_conn)
     res = repo.query(since=since, until=until)
     api_res = []
@@ -45,8 +47,9 @@ def query(ccy: str, bar: str, since: datetime, until: datetime):
     else:
         if res[0].t() > since:
             api_res += _api.query_market_candles(ccy=ccy, bar=bar, since=since, until=res[0].t())
-        if res[-1].t() + _bar_to_timedelta(bar) < until:
-            api_res += _api.query_market_candles(ccy=ccy, bar=bar, since=res[-1].t() + timedelta(milliseconds=1), until=until)
+        if res[-1].t() + const.bar_to_timedelta(bar) < until:
+            api_res += _api.query_market_candles(ccy=ccy, bar=bar, since=res[-1].t() + timedelta(milliseconds=1),
+                                                 until=until)
     saving_res = [c for c in api_res if c.t() + bar_timedelta <= now]
     repo.save(candles=saving_res)
     res += api_res
@@ -60,18 +63,6 @@ class Market(model.Market):
     """
     def query(self, ccy: str, bar: str, since: datetime, until: datetime):
         return query(ccy, bar, since, until)
-
-
-def _bar_to_timedelta(bar) -> timedelta:
-    bar2delta = {
-        model.BAR_1H: timedelta(hours=1),
-        model.BAR_1D: timedelta(days=1),
-    }
-    t = bar2delta.get(bar)
-    if t is None:
-        raise Exception("invalid bar {}".format(bar))
-    else:
-        return t
 
 
 class Repo:

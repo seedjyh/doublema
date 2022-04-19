@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import abc
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 class Candlestick:
@@ -29,13 +29,6 @@ class Candlestick:
     def timestamp(self):
         return self._t.timestamp()
 
-
-# 常用的柱形图单位
-BAR_1D = "1D"
-BAR_1H = "1H"
-
-# 常用的加密货币名称
-CCY_BTC = "btc"
 
 
 class Market(metaclass=abc.ABCMeta):
