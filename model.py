@@ -32,6 +32,7 @@ class Candlestick:
 
 # 常用的柱形图单位
 BAR_1D = "1D"
+BAR_1H = "1H"
 
 # 常用的加密货币名称
 CCY_BTC = "btc"

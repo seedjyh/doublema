@@ -1,0 +1,20 @@
+todo
+
+[ ] 用单元测试添加更多可用性。
+[ ] 未结束的candlestick不能写入数据库，以免占用timestamp，导致后续无法写入或解读出错。
+[ ] ts 用来描述时间戳，时间戳是指从1970-01-01开始的毫秒数。所有情况下都用int（ts）保存时间，而不是用datetime str。
+[ ] 所有数据库和内存里的时间都是本地时间。
+[ ] show all 负责查看所有币的当前仓位和当前币价。
+
+Order
+
+okex.market(since, until, bar)
+只查询 start-time 位于 [since, until) 的记录。
+
+okex.sqlite.repo(since, until, bar)
+只查询 start-time 位于 [since, until) 的记录。
+
+okex.api(since, until, bar)
+只查询 start-time 位于 [since, until) 的记录。
+
+注意，如果现实时间还没到一个bar的末尾，那么这个bar的数据可能不完整。

@@ -63,10 +63,15 @@ class Market(model.Market):
 
 
 def _bar_to_timedelta(bar) -> timedelta:
-    if bar == model.BAR_1D:
-        return timedelta(days=1)
-    else:
+    bar2delta = {
+        model.BAR_1H: timedelta(hours=1),
+        model.BAR_1D: timedelta(days=1),
+    }
+    t = bar2delta.get(bar)
+    if t is None:
         raise Exception("invalid bar {}".format(bar))
+    else:
+        return t
 
 
 class Repo:
