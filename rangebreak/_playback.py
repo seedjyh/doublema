@@ -46,7 +46,7 @@ def playback(ccy: str, bar: str):
         # bar 结束后，立刻进行交易
         closing_atr = _atr.get_atr(ccy=ccy, bar=bar, t=c.t())
         closing_each = _get_each(total=closing_total, atr=closing_atr)
-        if closing_score > 0.9:
+        if closing_score > 0.7:
             # 平空，开多
             if unit < 0:
                 usdt += crypto * closing_price
@@ -56,7 +56,7 @@ def playback(ccy: str, bar: str):
                 usdt -= closing_each * closing_price
                 crypto += closing_each
                 unit += 1
-        elif closing_score < 0.1:
+        elif closing_score < 0.3:
             # 平多，开空
             if unit > 0:
                 usdt += crypto * closing_price
