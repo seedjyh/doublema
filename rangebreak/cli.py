@@ -36,7 +36,7 @@ def show_ccy(ccy: str):
             lines.append({
                 'ccy': p.ccy,
                 "volatility": 12.3,
-                "each": "{} usdt/unit".format(45.6),
+                "each": "{} crypto/unit".format(45.6),
                 "unit": p.unit,
                 "score": 78.9,
             })
