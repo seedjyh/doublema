@@ -9,16 +9,22 @@ show all 显示所有币的情况。包括所有币的波动率、单位头寸�
 init btc 表示增加一个关注的币，并将仓位置0。如果已经存在则失败。
 long btc 表示btc减少一个空仓头寸单位，或增加一个多仓头寸单位。
 short btc 表示btc减少一个多仓头寸单位，或增加一个空仓头寸单位。
+playback btc 回放
 """
 import getopt
 import sys
 
+import const
 import display
-from rangebreak import _position
+import okex.market
+from rangebreak import _position, _playback, _score, _atr
 
 _db_name = "rangebreak.sqlite_db"
-
+_market = okex.market.Market()
 _position.init(db_name=_db_name)
+_score.init(market=_market)
+_atr.init(market=_market)
+_playback.init(market=_market)
 
 
 def show_ccy(ccy: str):
@@ -58,6 +64,21 @@ def short_ccy(ccy: str, unit: int):
     _position.update_one(ccy=ccy, delta_unit=-unit)
 
 
+def playback(ccy: str):
+    displayer = display.Displayer()
+    fields = ["ts", "open crypto", "open usdt", "open unit", "closing price", "closing total", "closing score"]
+    lines = [{
+        "ts": r.ts,
+        "open crypto": r.open_crypto,
+        "open usdt": r.open_usdt,
+        "open unit": r.open_unit,
+        "closing price": r.closing_price,
+        "closing total": r.closing_total,
+        "closing score": r.closing_score,
+    } for r in _playback.playback(ccy=ccy, bar=const.BAR_1D)]
+    displayer.display(fields=fields, lines=lines)
+
+
 class Options:
     def __init__(self):
         self.operation = None
@@ -95,5 +116,7 @@ elif opt.operation == "long":
     long_ccy(ccy=opt.target, unit=opt.unit)
 elif opt.operation == "short":
     short_ccy(ccy=opt.target, unit=opt.unit)
+elif opt.operation == "playback":
+    playback(ccy=opt.target)
 else:
     raise Exception("unknown operation: {}".format(opt.operation))
