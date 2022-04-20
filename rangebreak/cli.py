@@ -82,12 +82,14 @@ def short_ccy(ccy: str, unit: int):
 
 def playback(ccy: str):
     displayer = display.Displayer()
-    fields = ["ts", "open crypto", "open usdt", "open unit", "closing price", "closing total", "closing score"]
+    fields = ["ts", "open crypto", "open usdt", "open unit", "closing atr", "closing price", "closing total",
+              "closing score"]
     lines = [{
         "ts": r.ts,
         "open crypto": r.open_crypto,
         "open usdt": r.open_usdt,
         "open unit": r.open_unit,
+        "closing atr": r.closing_atr,
         "closing price": r.closing_price,
         "closing total": r.closing_total,
         "closing score": r.closing_score,

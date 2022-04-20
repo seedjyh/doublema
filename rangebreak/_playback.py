@@ -13,12 +13,14 @@ def init(market: Market):
 
 
 class Record:
-    def __init__(self, ts: datetime, open_crypto: float, open_usdt: float, open_unit: float, closing_price: float,
+    def __init__(self, ts: datetime, open_crypto: float, open_usdt: float, open_unit: float, closing_atr: float,
+                 closing_price: float,
                  closing_total: float, closing_score: float):
         self.ts = ts
         self.open_crypto = open_crypto
         self.open_usdt = open_usdt
         self.open_unit = open_unit
+        self.closing_atr = closing_atr
         self.closing_price = closing_price
         self.closing_total = closing_total
         self.closing_score = closing_score
@@ -32,11 +34,13 @@ def playback(ccy: str, bar: str):
     until = datetime.now()
     _score.init(market=_market)
     for c in _market.query(ccy=ccy, bar=bar, since=since, until=until):
+        closing_atr = _atr.get_atr(ccy=ccy, bar=bar, t=c.t())
         closing_price = c.c()
         closing_score = _score.get_score(ccy=ccy, bar=bar, t=c.t())
         closing_total = crypto * closing_price + usdt
         # 返回 bar 结束时的情况
-        yield Record(ts=c.t(), open_crypto=crypto, open_usdt=usdt, open_unit=unit, closing_price=closing_price,
+        yield Record(ts=c.t(), open_crypto=crypto, open_usdt=usdt, open_unit=unit, closing_atr=closing_atr,
+                     closing_price=closing_price,
                      closing_total=closing_total, closing_score=closing_score)
         # bar 结束后，立刻进行交易
         closing_atr = _atr.get_atr(ccy=ccy, bar=bar, t=c.t())
@@ -47,18 +51,20 @@ def playback(ccy: str, bar: str):
                 usdt += crypto * closing_price
                 crypto = 0
                 unit = 0
-            usdt -= closing_each * closing_price
-            crypto += closing_each
-            unit += 1
+            if unit < 4:
+                usdt -= closing_each * closing_price
+                crypto += closing_each
+                unit += 1
         elif closing_score < -0.9:
             # 平多，开空
             if unit > 0:
                 usdt += crypto * closing_price
                 crypto = 0
                 unit = 0
-            usdt += closing_each * closing_price
-            crypto -= closing_each
-            unit -= 1
+            if unit > -4:
+                usdt += closing_each * closing_price
+                crypto -= closing_each
+                unit -= 1
 
 
 def _get_each(total: float, atr: float):
