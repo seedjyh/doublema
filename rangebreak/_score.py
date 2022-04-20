@@ -20,5 +20,5 @@ def get_score(ccy: str, bar: str, t: datetime) -> float:
     if candles[0].l() < candles[1].l() < candles[2].l() and candles[0].h() < candles[1].h() < candles[2].h():
         return 1.0
     if candles[0].l() > candles[1].l() > candles[2].l() and candles[0].h() > candles[1].h() > candles[2].h():
-        return -1.0
-    return 0.0
+        return 0.0
+    return 0.5

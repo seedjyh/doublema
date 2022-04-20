@@ -55,7 +55,7 @@ def playback(ccy: str, bar: str):
                 usdt -= closing_each * closing_price
                 crypto += closing_each
                 unit += 1
-        elif closing_score < -0.9:
+        elif closing_score < 0.1:
             # 平多，开空
             if unit > 0:
                 usdt += crypto * closing_price
