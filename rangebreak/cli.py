@@ -13,9 +13,11 @@ playback btc 回放
 """
 import getopt
 import sys
+from datetime import datetime
 
 import const
 import display
+import model
 import okex.market
 from rangebreak import _position, _playback, _score, _atr
 
@@ -28,26 +30,40 @@ _playback.init(market=_market)
 
 
 def show_ccy(ccy: str):
+    bar = const.BAR_1D
     displayer = display.Displayer()
-    fields = ["ccy", "volatility", "each", "unit", "score"]
+    fields = ["ccy", "unit", "volatility", "each", "score"]
     lines = []
+
+    def calc_line(p: _position.Position):
+        last_candle = _get_last_candle(ccy=p.ccy, bar=bar)
+        price = last_candle.c()
+        atr = _atr.get_atr(ccy=p.ccy, bar=bar, t=datetime.now())
+        volatility = atr / price
+        max_lost = 10.0
+        each = max_lost / atr
+        score = _score.get_score(ccy=p.ccy, bar=bar, t=datetime.now())
+        return volatility, each, score
+
     if ccy == "all":
         for p in _position.query_all():
+            volatility, each, score = calc_line(p)
             lines.append({
                 'ccy': p.ccy,
-                "volatility": 12.3,
-                "each": "{} crypto/unit".format(45.6),
                 "unit": p.unit,
-                "score": 78.9,
+                "volatility": volatility,
+                "each": "{} crypto/unit".format(each),
+                "score": score,
             })
     else:
         p = _position.query_one(ccy=ccy)
+        volatility, each, score = calc_line(p)
         lines.append({
             'ccy': p.ccy,
-            "volatility": 12.3,
-            "each": "{} usdt/unit".format(45.6),
             "unit": p.unit,
-            "score": 78.9,
+            "volatility": volatility,
+            "each": "{} crypto/unit".format(each),
+            "score": score,
         })
     displayer.display(fields=fields, lines=lines)
 
@@ -77,6 +93,13 @@ def playback(ccy: str):
         "closing score": r.closing_score,
     } for r in _playback.playback(ccy=ccy, bar=const.BAR_1D)]
     displayer.display(fields=fields, lines=lines)
+
+
+def _get_last_candle(ccy: str, bar: str) -> model.Candlestick:
+    td = const.bar_to_timedelta(bar=bar)
+    until = datetime.now() - td
+    since = until - td
+    return _market.query(ccy=ccy, bar=bar, since=since, until=until)[-1]
 
 
 class Options:
