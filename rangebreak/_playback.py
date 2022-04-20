@@ -33,7 +33,8 @@ def playback(ccy: str, bar: str):
     since = datetime(year=2022, month=1, day=1)
     until = datetime.now()
     _score.init(market=_market)
-    for c in _market.query(ccy=ccy, bar=bar, since=since, until=until):
+    candles = _market.query(ccy=ccy, bar=bar, since=since, until=until)
+    for c in candles:
         closing_atr = _atr.get_atr(ccy=ccy, bar=bar, t=c.t())
         closing_price = c.c()
         closing_score = _score.get_score(ccy=ccy, bar=bar, t=c.t())

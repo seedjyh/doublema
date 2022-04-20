@@ -8,6 +8,7 @@ from urllib.parse import urljoin
 
 import requests
 
+import const
 from okex import _secret, _proxy, _host
 import model
 
@@ -25,6 +26,11 @@ def query_market_candles(ccy: str, bar: str, since: datetime, until: datetime):
     :param until: K柱开始时刻 < until
     :return:
     """
+    default_max_bar = 100  # 默认情况下，一次只能查询到从until前的最后一个bar开始的最后100条记录。
+    if until.timestamp() < since.timestamp():
+        raise Exception("until is earlier than since")
+    if until.timestamp() - since.timestamp() > default_max_bar * const.bar_to_timedelta(bar).total_seconds():
+        raise Exception("too large range")
     request_path = "/api/v5/market/candles"
     url = _make_url(request_path=request_path)
     headers = _make_headers(request_path=request_path)

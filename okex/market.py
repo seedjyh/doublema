@@ -40,20 +40,24 @@ def query(ccy: str, bar: str, since: datetime, until: datetime):
     """
     now = datetime.now()
     bar_timedelta = const.bar_to_timedelta(bar)
+    if now.timestamp() - until.timestamp() < bar_timedelta.total_seconds():
+        until -= bar_timedelta
     repo = Repo(ccy=ccy, bar=bar, db_conn=_db_conn)
     res = repo.query(since=since, until=until)
-    api_res = []
-    if len(res) == 0:
-        api_res += _api.query_market_candles(ccy=ccy, bar=bar, since=since, until=until)
-    else:
-        if res[0].t() > since:
-            api_res += _api.query_market_candles(ccy=ccy, bar=bar, since=since, until=res[0].t())
-        if res[-1].t() + const.bar_to_timedelta(bar) < until:
-            api_res += _api.query_market_candles(ccy=ccy, bar=bar, since=res[-1].t() + timedelta(milliseconds=1),
-                                                 until=until)
+    if len(res) > 0 and res[0].t().timestamp() < since.timestamp() + bar_timedelta.total_seconds() and \
+            res[-1].t().timestamp() >= until.timestamp() - bar_timedelta.total_seconds():
+        return res
+    res = []
+    max_api_bar_range = 100  # api限制，最多100条
+    now_since = since
+    while now_since < until:
+        api_since = now_since
+        api_until = min(api_since + max_api_bar_range * bar_timedelta, until)
+        api_res = _api.query_market_candles(ccy=ccy, bar=bar, since=api_since, until=api_until)
+        res += api_res
+        now_since = api_until
     saving_res = [c for c in api_res if c.t() + bar_timedelta <= now]
     repo.save(candles=saving_res)
-    res += api_res
     res.sort(key=lambda candle: candle.t())
     return res
 
