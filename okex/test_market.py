@@ -39,6 +39,10 @@ def test_query(db_name):
     assert res[-1].__dict__ == Candlestick(t=datetime(year=2022, month=4, day=6),
                                            o=45762.2, h=46190.0, l=43716.8, c=44166.0).__dict__
 
+def test_query(db_name):
+    assert len(market.query(ccy=CCY_BTC, bar=BAR_1D,
+                            since=datetime(year=2022, month=4, day=16, hour=22, minute=44, second=31),
+                            until=datetime(year=2022, month=4, day=19, hour=22, minute=44, second=31))) == 3
 
 class TestRepo:
     @pytest.fixture

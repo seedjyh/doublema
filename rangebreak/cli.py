@@ -43,7 +43,8 @@ def show_ccy(ccy: str):
         volatility = atr / price
         max_lost = 10.0
         each = max_lost / atr
-        score = _score.get_score(ccy=p.ccy, bar=bar, t=datetime.now())
+        t = datetime.now() - const.bar_to_timedelta(bar=bar)  # t是上一个已经完结了的bar的开始时刻
+        score = _score.get_score(ccy=p.ccy, bar=bar, t=t)
         return volatility, each, score
 
     if ccy == "all":

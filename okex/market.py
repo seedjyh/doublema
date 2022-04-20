@@ -40,7 +40,7 @@ def query(ccy: str, bar: str, since: datetime, until: datetime):
     """
     now = datetime.now()
     bar_timedelta = const.bar_to_timedelta(bar)
-    if now.timestamp() - until.timestamp() < bar_timedelta.total_seconds():
+    if now.timestamp() // bar_timedelta.total_seconds() <= until.timestamp() // bar_timedelta.total_seconds():
         until -= bar_timedelta
     repo = Repo(ccy=ccy, bar=bar, db_conn=_db_conn)
     res = repo.query(since=since, until=until)
