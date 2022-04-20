@@ -27,10 +27,11 @@ _position.init(db_name=_db_name)
 _score.init(market=_market)
 _atr.init(market=_market)
 _playback.init(market=_market)
+_bar = const.BAR_1D
 
 
 def show_ccy(ccy: str):
-    bar = const.BAR_1D
+    bar = _bar
     displayer = display.Displayer()
     fields = ["ccy", "unit", "volatility", "each", "score"]
     lines = []
@@ -93,7 +94,7 @@ def playback(ccy: str):
         "closing price": r.closing_price,
         "closing total": r.closing_total,
         "closing score": r.closing_score,
-    } for r in _playback.playback(ccy=ccy, bar=const.BAR_1D)]
+    } for r in _playback.playback(ccy=ccy, bar=_bar)]
     displayer.display(fields=fields, lines=lines)
 
 
