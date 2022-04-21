@@ -6,7 +6,6 @@ from model import Trade
 from okex.trade import set_db_conn, query
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 #
 # def test_query():

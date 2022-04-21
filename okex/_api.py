@@ -3,6 +3,7 @@ import base64
 import hashlib
 import hmac
 import logging
+
 from datetime import datetime, timedelta
 from urllib.parse import urljoin
 
@@ -13,8 +14,6 @@ from okex import _secret, _proxy, _host
 import model
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
 
 def query_market_candles(ccy: str, bar: str, since: datetime, until: datetime):
     """
@@ -32,6 +31,7 @@ def query_market_candles(ccy: str, bar: str, since: datetime, until: datetime):
     if until.timestamp() - since.timestamp() > default_max_bar * const.bar_to_timedelta(bar).total_seconds():
         raise Exception("too large range")
     request_path = "/api/v5/market/candles"
+    logger.debug("querying market candles, request_path={}".format(request_path))
     url = _make_url(request_path=request_path)
     headers = _make_headers(request_path=request_path)
     proxies = _make_proxies()
