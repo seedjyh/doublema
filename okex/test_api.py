@@ -7,7 +7,6 @@ from const import BAR_1D, CCY_BTC
 from okex._api import query_market_candles, query_trade_fills
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 def test_query_market_candles():

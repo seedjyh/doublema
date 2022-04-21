@@ -13,7 +13,6 @@ from okex import _secret, _proxy, _host
 import model
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 def query_market_candles(ccy: str, bar: str, since: datetime, until: datetime):
     """
