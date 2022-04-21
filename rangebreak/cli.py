@@ -12,6 +12,7 @@ short btc 表示btc减少一个多仓头寸单位，或增加一个空仓头寸�
 playback btc 回放
 """
 import getopt
+import logging
 import sys
 from datetime import datetime
 
@@ -20,6 +21,8 @@ import display
 import model
 import okex.market
 from rangebreak import _position, _playback, _score, _atr
+
+logger = logging.getLogger(__name__)
 
 _db_name = "rangebreak.sqlite_db"
 _market = okex.market.Market()
@@ -30,6 +33,7 @@ _playback.init(market=_market)
 
 
 def show_ccy(ccy: str):
+    logger.debug("show ccy, ccy={}".format(ccy))
     bar = const.BAR_1D
     displayer = display.Displayer()
     fields = ["ccy", "unit", "volatility", "each", "score"]

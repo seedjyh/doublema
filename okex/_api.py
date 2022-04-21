@@ -3,6 +3,7 @@ import base64
 import hashlib
 import hmac
 import logging
+
 from datetime import datetime, timedelta
 from urllib.parse import urljoin
 
@@ -13,7 +14,6 @@ import model
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-
 
 def query_market_candles(ccy: str, bar: str, since: datetime, until: datetime):
     """
@@ -26,6 +26,7 @@ def query_market_candles(ccy: str, bar: str, since: datetime, until: datetime):
     :return:
     """
     request_path = "/api/v5/market/candles"
+    logger.debug("querying market candles, request_path={}".format(request_path))
     url = _make_url(request_path=request_path)
     headers = _make_headers(request_path=request_path)
     proxies = _make_proxies()

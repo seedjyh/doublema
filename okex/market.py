@@ -13,7 +13,6 @@ import model
 from okex import _api
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 _db_conn = None
 
@@ -29,7 +28,7 @@ def set_db_conn(db_conn):
 
 
 def query(ccy: str, bar: str, since: datetime, until: datetime):
-    print("method query", ccy, bar, since, until)
+    logger.debug("okex.market.query, ccy={}, bar={}, since={}, until={}".format(ccy, bar, since, until))
     """
     查询指定标的、指定K线粒度，K柱起点从since（含）到until（不含）的所有K柱，按照K柱时间顺序排列。
     :param ccy: 标的。
