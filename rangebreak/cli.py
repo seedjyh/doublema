@@ -37,7 +37,7 @@ def show_ccy(ccy: str):
     logger.debug("show ccy, ccy={}".format(ccy))
     bar = _bar
     displayer = display.Displayer()
-    fields = ["ccy", "unit", "volatility", "each", "score"]
+    fields = ["ccy", "unit", "atr", "volatility", "each", "score"]
     lines = []
 
     def calc_line(p: _position.Position):
@@ -49,24 +49,26 @@ def show_ccy(ccy: str):
         each = max_lost / atr
         t = datetime.now() - const.bar_to_timedelta(bar=bar)  # t是上一个已经完结了的bar的开始时刻
         score = _score.get_score(ccy=p.ccy, bar=bar, t=t)
-        return volatility, each, score
+        return atr, volatility, each, score
 
     if ccy == "all":
         for p in _position.query_all():
-            volatility, each, score = calc_line(p)
+            atr, volatility, each, score = calc_line(p)
             lines.append({
                 'ccy': p.ccy,
                 "unit": p.unit,
+                "atr": atr,
                 "volatility": volatility,
                 "each": "{} crypto/unit".format(each),
                 "score": score,
             })
     else:
         p = _position.query_one(ccy=ccy)
-        volatility, each, score = calc_line(p)
+        atr, volatility, each, score = calc_line(p)
         lines.append({
             'ccy': p.ccy,
             "unit": p.unit,
+            "atr": atr,
             "volatility": volatility,
             "each": "{} crypto/unit".format(each),
             "score": score,
