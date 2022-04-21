@@ -11,3 +11,4 @@
 /okex/_secret.py
 *.pyc
 *.sqlite_db
+/conf/logging_config.yaml
