@@ -6,10 +6,12 @@ from datetime import datetime, timedelta
 
 import const
 import display
-import model
+import logging
 import okex.market
 import okex.trade
 from triplema import _position, _index, _score, _playback
+
+logger = logging.getLogger(__name__)
 
 _db = "triplema.sqlite_db"
 _db_conn = sqlite3.connect(database=_db)
@@ -26,11 +28,12 @@ def set_position(ccy: str, crypto: float, usdt: float):
     try:
         _position.Repository().set(p=_position.Position(ccy=ccy, crypto=crypto, usdt=usdt))
     except Exception as e:
-        print("ERR: exception {}".format(e))
+        logger.info("ERR: exception {}".format(e))
         raise e
 
 
 def _buy_position(ccy: str, price: float, crypto: float, last_bill_id: str):
+    logger.info("Buying... ccy={}, price={}, crypto={}, last_bill_id={}".format(ccy, price, crypto, last_bill_id))
     repo = _position.Repository(db_conn=_db_conn)
     raw_position = repo.query(ccy=ccy)
     cost = crypto * price
@@ -43,10 +46,11 @@ def _buy_position(ccy: str, price: float, crypto: float, last_bill_id: str):
         last_bill_id=last_bill_id,
     )
     repo.set(p=new_position)
-    print("Bought. ccy={}, price={}, crypto={}, last_bill_id={}".format(ccy, price, crypto, last_bill_id))
+    logger.info("Bought. ccy={}, price={}, crypto={}, last_bill_id={}".format(ccy, price, crypto, last_bill_id))
 
 
 def _sell_position(ccy: str, price: float, crypto: float, last_bill_id: str):
+    logger.info("Selling... ccy={}, price={}, crypto={}, last_bill_id={}".format(ccy, price, crypto, last_bill_id))
     repo = _position.Repository(db_conn=_db_conn)
     raw_position = repo.query(ccy=ccy)
     receive = crypto * price
@@ -59,7 +63,7 @@ def _sell_position(ccy: str, price: float, crypto: float, last_bill_id: str):
         last_bill_id=last_bill_id,
     )
     repo.set(p=new_position)
-    print("Sold. ccy={}, price={}, crypto={}, last_bill_id={}".format(ccy, price, crypto, last_bill_id))
+    logger.info("Sold. ccy={}, price={}, crypto={}, last_bill_id={}".format(ccy, price, crypto, last_bill_id))
 
 
 def show_position(ccy: str):
@@ -103,7 +107,7 @@ def show_position(ccy: str):
             lines.append(p2d(p))
         displayer.display(fields=fields, lines=lines)
     except Exception as e:
-        print("ERR: exception {}".format(e))
+        logger.info("ERR: exception {}".format(e))
 
 
 def get_advice(ccy: str):
@@ -138,7 +142,7 @@ def get_advice(ccy: str):
             })
         displayer.display(fields=fields, lines=lines)
     except Exception as e:
-        print("ERR: exception {}".format(e))
+        logger.info("ERR: exception {}".format(e))
         raise e
     finally:
         db_conn.close()
@@ -171,10 +175,14 @@ def sync_trade():
     except _position.NoSuchRecord:
         last_bill_id = None
     for t in okex.trade.query(last_bill_id=last_bill_id):
-        if t.crypto > 0:
-            _buy_position(ccy=t.ccy, price=t.price, crypto=t.crypto, last_bill_id=t.bill_id)
-        else:
-            _sell_position(ccy=t.ccy, price=t.price, crypto=-t.crypto, last_bill_id=t.bill_id)
+        try:
+            p = _position.Repository().query(ccy=t.ccy)
+            if t.crypto > 0:
+                _buy_position(ccy=t.ccy, price=t.price, crypto=t.crypto, last_bill_id=t.bill_id)
+            else:
+                _sell_position(ccy=t.ccy, price=t.price, crypto=-t.crypto, last_bill_id=t.bill_id)
+        except _position.NoSuchRecord:
+            logger.info("no position for trade ccy={}".format(t.ccy))
 
 # api above...
 # opt below...
