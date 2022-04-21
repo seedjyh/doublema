@@ -66,6 +66,11 @@ def playback(ccy: str, bar: str):
                 usdt += closing_each * closing_price
                 crypto -= closing_each
                 unit -= 1
+        else:
+            # 全平
+            usdt += crypto * closing_price
+            crypto = 0
+            unit = 0
 
 
 def _get_each(total: float, atr: float):
