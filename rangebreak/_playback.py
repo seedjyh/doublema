@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 
+import const
 from model import Market
 from rangebreak import _score, _atr
 
@@ -31,20 +32,23 @@ def playback(ccy: str, bar: str):
     usdt = 1000.0
     unit = 0
     since = datetime(year=2022, month=1, day=1)
-    until = datetime.now()
+    until = datetime.now() - const.bar_to_timedelta(bar=bar)
     _score.init(market=_market)
     candles = _market.query(ccy=ccy, bar=bar, since=since, until=until)
-    for c in candles:
-        closing_atr = _atr.get_atr(ccy=ccy, bar=bar, t=c.t())
+    atrs = [a for a in _atr.get_atrs(ccy=ccy, bar=bar, since=since, until=until)]
+    scores = [s for s in _score.get_scores(ccy=ccy, bar=bar, since=since, until=until)]
+    for i in range(len(candles)):
+        c = candles[i]
+        s = scores[i]
+        closing_atr = atrs[i].atr
         closing_price = c.c()
-        closing_score = _score.get_score(ccy=ccy, bar=bar, t=c.t())
+        closing_score = scores[i].score
         closing_total = crypto * closing_price + usdt
         # 返回 bar 结束时的情况
         yield Record(ts=c.t(), open_crypto=crypto, open_usdt=usdt, open_unit=unit, closing_atr=closing_atr,
                      closing_price=closing_price,
                      closing_total=closing_total, closing_score=closing_score)
         # bar 结束后，立刻进行交易
-        closing_atr = _atr.get_atr(ccy=ccy, bar=bar, t=c.t())
         closing_each = _get_each(total=closing_total, atr=closing_atr)
         if closing_score > 0.7:
             # 平空，开多

@@ -39,17 +39,19 @@ def show_ccy(ccy: str):
     displayer = display.Displayer()
     fields = ["ccy", "unit", "atr", "volatility", "each", "score"]
     lines = []
+    td = const.bar_to_timedelta(bar=bar)
+    until = datetime.now() - td
+    since = until - td
 
     def calc_line(p: _position.Position):
         last_candle = _get_last_candle(ccy=p.ccy, bar=bar)
         price = last_candle.c()
-        atr = _atr.get_atr(ccy=p.ccy, bar=bar, t=datetime.now())
-        volatility = atr / price
+        __atr = [a for a in _atr.get_atrs(ccy=p.ccy, bar=bar, since=since, until=until)][-1]
+        __volatility = __atr.atr / price
         max_lost = 10.0
-        each = max_lost / atr
-        t = datetime.now() - const.bar_to_timedelta(bar=bar)  # t是上一个已经完结了的bar的开始时刻
-        score = _score.get_score(ccy=p.ccy, bar=bar, t=t)
-        return atr, volatility, each, score
+        __each = max_lost / __atr.atr
+        __score = [s for s in _score.get_scores(ccy=p.ccy, bar=bar, since=since, until=until)][-1]
+        return __atr, __volatility, __each, __score
 
     if ccy == "all":
         for p in _position.query_all():
@@ -57,10 +59,10 @@ def show_ccy(ccy: str):
             lines.append({
                 'ccy': p.ccy,
                 "unit": p.unit,
-                "atr": atr,
+                "atr": atr.atr,
                 "volatility": volatility,
                 "each": "{} crypto/unit".format(each),
-                "score": score,
+                "score": score.score,
             })
     else:
         p = _position.query_one(ccy=ccy)
@@ -68,10 +70,10 @@ def show_ccy(ccy: str):
         lines.append({
             'ccy': p.ccy,
             "unit": p.unit,
-            "atr": atr,
+            "atr": atr.atr,
             "volatility": volatility,
             "each": "{} crypto/unit".format(each),
-            "score": score,
+            "score": score.score,
         })
     displayer.display(fields=fields, lines=lines)
 
