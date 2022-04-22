@@ -15,6 +15,7 @@ import model
 
 logger = logging.getLogger(__name__)
 
+
 def query_market_candles(ccy: str, bar: str, since: datetime, until: datetime):
     """
     查询指定 ccy ，指定 bar ，开始时间位于 [since, until) （半闭半开区间）的K线数据。
