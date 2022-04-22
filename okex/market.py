@@ -55,7 +55,7 @@ def query(ccy: str, bar: str, since: datetime, until: datetime):
         api_res = _api.query_market_candles(ccy=ccy, bar=bar, since=api_since, until=api_until)
         res += api_res
         now_since = api_until
-    saving_res = [c for c in api_res if c.t() + bar_timedelta <= now]
+    saving_res = [c for c in res if c.t() + bar_timedelta <= now]
     repo.save(candles=saving_res)
     res.sort(key=lambda candle: candle.t())
     return res
