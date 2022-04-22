@@ -28,7 +28,7 @@ def set_db_conn(db_conn):
 
 
 def query(ccy: str, bar: str, since: datetime, until: datetime):
-    logger.debug("okex.market.query, ccy={}, bar={}, since={}, until={}".format(ccy, bar, since, until))
+    logger.info("query, ccy={}, bar={}, since={}, until={}".format(ccy, bar, since, until))
     """
     查询指定标的、指定K线粒度，K柱起点从since（含）到until（不含）的所有K柱，按照K柱时间顺序排列。
     :param ccy: 标的。
@@ -70,9 +70,8 @@ class Market(model.Market):
         self.cache = []
 
     def query(self, ccy: str, bar: str, since: datetime, until: datetime):
-        _offset = timedelta(days=90)  # 每次故意多查一点，备用
         if len(self.cache) == 0 or since < self.cache[0].t() or until > self.cache[-1].t():
-            self.cache = query(ccy, bar, since - _offset, until)
+            self.cache = query(ccy, bar, since, until)
         return [c for c in self.cache if since <= c.t() < until]
 
 

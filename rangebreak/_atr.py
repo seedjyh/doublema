@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from datetime import datetime
 
 import const
@@ -7,6 +8,7 @@ from model import Market
 _interval = 20
 _market: Market = None
 
+logger = logging.getLogger(__name__)
 
 def init(market: Market):
     global _market
@@ -14,6 +16,7 @@ def init(market: Market):
 
 
 def get_atr(ccy: str, bar: str, t: datetime):
+    logger.info("get_atr, ccy={}, bar={}, t={}".format(ccy, bar, t))
     td = const.bar_to_timedelta(bar=bar)
     until = t - td
     since = until - td * _interval

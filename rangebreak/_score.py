@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from datetime import datetime, timedelta
 
 import const
@@ -6,6 +7,7 @@ from model import Market
 
 _market: Market = None
 
+logger = logging.getLogger(__name__)
 
 def init(market: Market):
     global _market
@@ -13,6 +15,7 @@ def init(market: Market):
 
 
 def get_score(ccy: str, bar: str, t: datetime) -> float:
+    logger.info("get_score, ccy={}, bar={}, t={}".format(ccy, bar, t))
     td = const.bar_to_timedelta(bar=bar)
     until = t + timedelta(milliseconds=1)
     since = until - 3 * td
