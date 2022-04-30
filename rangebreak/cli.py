@@ -31,7 +31,8 @@ _score.init(market=_market)
 _atr.init(market=_market)
 _playback.init(market=_market)
 _bar = const.BAR_1D
-
+_total_asset = 1000.0
+_each_max_lost_rage = 0.01
 
 def show_ccy(ccy: str):
     logger.debug("show ccy, ccy={}".format(ccy))
@@ -48,7 +49,7 @@ def show_ccy(ccy: str):
         price = last_candle.c()
         __atr = [a for a in _atr.get_atrs(ccy=p.ccy, bar=bar, since=since, until=until)][-1]
         __volatility = __atr.atr / price
-        max_lost = 10.0
+        max_lost = _total_asset * _each_max_lost_rage
         __each = max_lost / __atr.atr
         __score = [s for s in _score.get_scores(ccy=p.ccy, bar=bar, since=since, until=until)][-1]
         return __atr, __volatility, __each, __score
