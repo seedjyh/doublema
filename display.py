@@ -55,3 +55,22 @@ class Displayer:
             return Displayer.str_field(value).ljust(width)
         else:
             return Displayer.str_field(value).rjust(width)
+
+
+class Value:
+    def __init__(self, v: float, sign: bool, unit: str):
+        if abs(v) < 1e-10:
+            self._v = 0.0
+            self._sign = ""
+        else:
+            if sign:
+                self._v = abs(v)
+                self._sign = "+" if v > 0 else "-"
+            else:
+                self._v = v
+                self._sign = ""
+        self._unit = unit if unit else ""
+
+    def __str__(self):
+        return self._sign + "{:.6f}".format(self._v) + " " + self._unit
+

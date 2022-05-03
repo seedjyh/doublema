@@ -38,7 +38,7 @@ def show_ccy(ccy: str):
     logger.debug("show ccy, ccy={}".format(ccy))
     bar = _bar
     displayer = display.Displayer()
-    fields = ["ccy", "unit", "atr", "volatility", "each", "score"]
+    fields = ["ccy", "unit", "atr", "volatility", "each", "total", "score"]
     lines = []
     td = const.bar_to_timedelta(bar=bar)
     until = datetime.now() - td
@@ -59,10 +59,11 @@ def show_ccy(ccy: str):
         return {
             'ccy': p.ccy,
             "unit": p.unit,
-            "atr": atr.atr,
+            "atr": display.Value(v=atr.atr, sign=False, unit="usdt"),
             "volatility": volatility,
-            "each": "{} crypto/unit".format(each),
+            "each": display.Value(v=each, sign=False, unit="crypto/unit"),
             "score": score.score,
+            "total": display.Value(v=p.unit * each, sign=True, unit="crypto"),
         }
 
     if ccy == "all":
