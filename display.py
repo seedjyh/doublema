@@ -38,12 +38,12 @@ class Displayer:
         if value is None:
             return "NULL"
         elif type(value) == float:
-            if value > 1e-6:
+            if 1e-10 <= abs(value) < 1e-6:
                 return "%.06f" % value
             elif abs(value) < 1e-10:
                 return "0"
             else:
-                return str(value)
+                return "{:.3f}".format(value)
         else:
             return str(value)
 
