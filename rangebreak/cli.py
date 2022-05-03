@@ -31,7 +31,7 @@ _score.init(market=_market)
 _atr.init(market=_market)
 _playback.init(market=_market)
 _bar = const.BAR_1D
-_total_asset = 1000.0
+_total_asset = 1800.0
 _each_max_lost_rage = 0.01
 
 def show_ccy(ccy: str):
@@ -54,28 +54,23 @@ def show_ccy(ccy: str):
         __score = [s for s in _score.get_scores(ccy=p.ccy, bar=bar, since=since, until=until)][-1]
         return __atr, __volatility, __each, __score
 
-    if ccy == "all":
-        for p in _position.query_all():
-            atr, volatility, each, score = calc_line(p)
-            lines.append({
-                'ccy': p.ccy,
-                "unit": p.unit,
-                "atr": atr.atr,
-                "volatility": volatility,
-                "each": "{} crypto/unit".format(each),
-                "score": score.score,
-            })
-    else:
-        p = _position.query_one(ccy=ccy)
+    def p2line(p: _position.Position) -> dict:
         atr, volatility, each, score = calc_line(p)
-        lines.append({
+        return {
             'ccy': p.ccy,
             "unit": p.unit,
             "atr": atr.atr,
             "volatility": volatility,
             "each": "{} crypto/unit".format(each),
             "score": score.score,
-        })
+        }
+
+    if ccy == "all":
+        for p in _position.query_all():
+            lines.append(p2line(p))
+    else:
+        p = _position.query_one(ccy=ccy)
+        lines.append(p2line(p))
     displayer.display(fields=fields, lines=lines)
 
 
