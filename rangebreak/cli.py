@@ -38,7 +38,7 @@ def show_ccy(ccy: str):
     logger.debug("show ccy, ccy={}".format(ccy))
     bar = _bar
     displayer = display.Displayer()
-    fields = ["ccy", "unit", "atr", "volatility", "each", "total", "score"]
+    fields = ["ccy", "unit", "each", "score", "operation"]
     lines = []
     td = const.bar_to_timedelta(bar=bar)
     until = datetime.now() - td
@@ -59,11 +59,11 @@ def show_ccy(ccy: str):
         return {
             'ccy': p.ccy,
             "unit": p.unit,
-            "atr": display.Value(v=atr.atr, sign=False, unit="usdt"),
-            "volatility": volatility,
+            # "atr": display.Value(v=atr.atr, sign=False, unit="usdt"),
+            # "volatility": volatility,
             "each": display.Value(v=each, sign=False, unit="crypto/unit"),
             "score": score.score,
-            "total": display.Value(v=p.unit * each, sign=True, unit="crypto"),
+            "operation": make_operation(ccy=p.ccy, score=score.score, now_unit=p.unit, each=each, atr=atr.atr)
         }
 
     if ccy == "all":
@@ -73,6 +73,71 @@ def show_ccy(ccy: str):
         p = _position.query_one(ccy=ccy)
         lines.append(p2line(p))
     displayer.display(fields=fields, lines=lines)
+
+
+def make_operation(ccy: str, score: float, now_unit: float, each: float, atr: float) -> str:
+    """
+    显示操作建议
+    :param ccy: 当前标的名
+    :param score: 当前分数
+    :param now_unit: 当前持仓单位
+    :param each: 每个持仓单位需要的币数
+    :param atr: 平均波动范围
+    :return: 字符串描述的操作
+    """
+    if 0.9 < score:  # 0.1
+        if now_unit < 0:
+            return "close all short, open long {:.3f} {}".format(each, ccy)
+        else:
+            return "open long {:.3f} {}".format(each, ccy)
+    elif 0.8 < score < 0.9:  # 0.875
+        if now_unit < 0:
+            return "close all short, open long {:.3f} {}".format(each, ccy)
+        else:
+            return "open long {:.3f} {}".format(each, ccy)
+    elif 0.7 < score < 0.8:  # 0.75
+        if now_unit < 0:
+            return "close all short"
+        else:
+            return "----"
+    elif 0.6 < score < 0.7:  # 0.625
+        if now_unit < 0:
+            return "close all short"
+        elif now_unit > 0:
+            return "close long {:.3f} {}".format(now_unit / 2 * each, ccy)
+        else:
+            return "----"
+    elif 0.4 < score < 0.6:  # 0.5
+        if now_unit < 0:
+            return "close all short"
+        elif now_unit > 0:
+            return "close all long"
+        else:
+            return "----"
+    elif 0.3 < score < 0.4:  # 0.375
+        if now_unit < 0:
+            return "close short {:.3f} {}".format(now_unit / 2 * each, ccy)
+        elif now_unit > 0:
+            return "close all long"
+        else:
+            return "----"
+    elif 0.2 < score < 0.3:  # 0.25
+        if now_unit <= 0:
+            return "----"
+        else:
+            return "close all long"
+    elif 0.1 < score < 0.2:  # 0.125
+        if now_unit <= 0:
+            return "open short {:.3f} {}".format(each, ccy)
+        else:
+            return "close all long, open short {:.3f} {}".format(each, ccy)
+    elif 0.0 < score < 0.1:  # 0.0
+        if now_unit <= 0:
+            return "open short {:.3f} {}".format(each, ccy)
+        else:
+            return "close all long, open short {:.3f} {}".format(each, ccy)
+    else:
+        return "invalid score {}".format(score)
 
 
 def add_ccy(ccy: str):
