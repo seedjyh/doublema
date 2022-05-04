@@ -88,8 +88,8 @@ def make_operation(ccy: str, score: float, now_unit: float, each: float, atr: fl
     :param price: 最近价格
     :return: 字符串描述的操作
     """
-    stop_for_long = "{} usdt/{}".format(price - atr * 2, ccy)
-    stop_for_short = "{} usdt/{}".format(price + atr * 2, ccy)
+    stop_for_long = "{:.8f} usdt/{}".format(price - atr * 2, ccy)
+    stop_for_short = "{:.8f} usdt/{}".format(price + atr * 2, ccy)
     if 0.9 < score:  # 0.1
         if now_unit < 0:
             return "close all short, open {:+.3f} {} (stop {})".format(each, ccy, stop_for_long)
@@ -136,7 +136,7 @@ def make_operation(ccy: str, score: float, now_unit: float, each: float, atr: fl
             return "open {:+.3f} {} (stop {})".format(-each, ccy, stop_for_short)
         else:
             return "close all long, open {:+.3f} {} (stop {})".format(-each, ccy, stop_for_short)
-    elif 0.0 < score < 0.1:  # 0.0
+    elif score < 0.1:  # 0.0
         if now_unit <= 0:
             return "open {:+.3f} {} (stop {})".format(-each, ccy, stop_for_short)
         else:
