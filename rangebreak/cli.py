@@ -45,7 +45,7 @@ def show_ccy(ccy: str):
     since = until - td
 
     def calc_line(p: _position.Position):
-        last_candle = _get_last_candle(ccy=p.ccy, bar=bar)
+        last_candle = _get_last_complete_candle(ccy=p.ccy, bar=bar)
         price = last_candle.c()
         __atr = [a for a in _atr.get_atrs(ccy=p.ccy, bar=bar, since=since, until=until)][-1]
         __volatility = __atr.atr / price
@@ -56,6 +56,7 @@ def show_ccy(ccy: str):
 
     def p2line(p: _position.Position) -> dict:
         atr, volatility, each, score = calc_line(p)
+        last_price = _get_latest_candle(ccy=p.ccy, bar=_bar)
         return {
             'ccy': p.ccy,
             "unit": p.unit,
@@ -63,7 +64,8 @@ def show_ccy(ccy: str):
             # "volatility": volatility,
             "each": display.Value(v=each, sign=False, unit="crypto/unit"),
             "score": score.score,
-            "operation": make_operation(ccy=p.ccy, score=score.score, now_unit=p.unit, each=each, atr=atr.atr)
+            "operation": make_operation(ccy=p.ccy, score=score.score, now_unit=p.unit, each=each, atr=atr.atr,
+                                        price=last_price.c())
         }
 
     if ccy == "all":
@@ -75,7 +77,7 @@ def show_ccy(ccy: str):
     displayer.display(fields=fields, lines=lines)
 
 
-def make_operation(ccy: str, score: float, now_unit: float, each: float, atr: float) -> str:
+def make_operation(ccy: str, score: float, now_unit: float, each: float, atr: float, price: float) -> str:
     """
     显示操作建议
     :param ccy: 当前标的名
@@ -83,18 +85,21 @@ def make_operation(ccy: str, score: float, now_unit: float, each: float, atr: fl
     :param now_unit: 当前持仓单位
     :param each: 每个持仓单位需要的币数
     :param atr: 平均波动范围
+    :param price: 最近价格
     :return: 字符串描述的操作
     """
+    stop_for_long = "{} usdt/{}".format(price - atr * 2, ccy)
+    stop_for_short = "{} usdt/{}".format(price + atr * 2, ccy)
     if 0.9 < score:  # 0.1
         if now_unit < 0:
-            return "close all short, open long {:.3f} {}".format(each, ccy)
+            return "close all short, open {:+.3f} {} (stop {})".format(each, ccy, stop_for_long)
         else:
-            return "open long {:.3f} {}".format(each, ccy)
+            return "open {:+.3f} {} (stop {})".format(each, ccy, stop_for_long)
     elif 0.8 < score < 0.9:  # 0.875
         if now_unit < 0:
-            return "close all short, open long {:.3f} {}".format(each, ccy)
+            return "close all short, open {:+.3f} {} (stop {})".format(each, ccy, stop_for_long)
         else:
-            return "open long {:.3f} {}".format(each, ccy)
+            return "open {:+.3f} {} (stop {})".format(each, ccy, stop_for_long)
     elif 0.7 < score < 0.8:  # 0.75
         if now_unit < 0:
             return "close all short"
@@ -104,7 +109,7 @@ def make_operation(ccy: str, score: float, now_unit: float, each: float, atr: fl
         if now_unit < 0:
             return "close all short"
         elif now_unit > 0:
-            return "close long {:.3f} {}".format(now_unit / 2 * each, ccy)
+            return "close HALF long {:.3f} {}".format(now_unit / 2 * each, ccy)
         else:
             return "----"
     elif 0.4 < score < 0.6:  # 0.5
@@ -116,7 +121,7 @@ def make_operation(ccy: str, score: float, now_unit: float, each: float, atr: fl
             return "----"
     elif 0.3 < score < 0.4:  # 0.375
         if now_unit < 0:
-            return "close short {:.3f} {}".format(now_unit / 2 * each, ccy)
+            return "close HALF short {:.3f} {}".format(now_unit / 2 * each, ccy)
         elif now_unit > 0:
             return "close all long"
         else:
@@ -128,14 +133,14 @@ def make_operation(ccy: str, score: float, now_unit: float, each: float, atr: fl
             return "close all long"
     elif 0.1 < score < 0.2:  # 0.125
         if now_unit <= 0:
-            return "open short {:.3f} {}".format(each, ccy)
+            return "open {:+.3f} {} (stop {})".format(-each, ccy, stop_for_short)
         else:
-            return "close all long, open short {:.3f} {}".format(each, ccy)
+            return "close all long, open {:+.3f} {} (stop {})".format(-each, ccy, stop_for_short)
     elif 0.0 < score < 0.1:  # 0.0
         if now_unit <= 0:
-            return "open short {:.3f} {}".format(each, ccy)
+            return "open {:+.3f} {} (stop {})".format(-each, ccy, stop_for_short)
         else:
-            return "close all long, open short {:.3f} {}".format(each, ccy)
+            return "close all long, open {:+.3f} {} (stop {})".format(-each, ccy, stop_for_short)
     else:
         return "invalid score {}".format(score)
 
@@ -169,10 +174,17 @@ def playback(ccy: str):
     displayer.display(fields=fields, lines=lines)
 
 
-def _get_last_candle(ccy: str, bar: str) -> model.Candlestick:
+def _get_last_complete_candle(ccy: str, bar: str) -> model.Candlestick:
     td = const.bar_to_timedelta(bar=bar)
     until = datetime.now() - td
     since = until - td
+    return _market.query(ccy=ccy, bar=bar, since=since, until=until)[-1]
+
+
+def _get_latest_candle(ccy: str, bar: str) -> model.Candlestick:
+    td = const.bar_to_timedelta(bar=bar)
+    until = datetime.now()
+    since = datetime.now() - td * 2
     return _market.query(ccy=ccy, bar=bar, since=since, until=until)[-1]
 
 
