@@ -2,6 +2,7 @@
 import base64
 import hashlib
 import hmac
+import json
 import logging
 
 from datetime import datetime, timedelta
@@ -34,7 +35,7 @@ def query_market_candles(ccy: str, bar: str, since: datetime, until: datetime):
     request_path = "/api/v5/market/candles"
     logger.debug("querying market candles, request_path={}".format(request_path))
     url = _make_url(request_path=request_path)
-    headers = _make_headers(request_path=request_path)
+    headers = _make_headers(method="GET", request_path=request_path)
     proxies = _make_proxies()
     params = {
         "instId": _get_inst_id(ccy=ccy),
@@ -74,7 +75,7 @@ def query_trade_fills(last_bill_id: str = None) -> []:
         request_path += "&before=" + last_bill_id
     logger.debug("querying trade fills, request_path={}".format(request_path))
     url = _make_url(request_path=request_path)
-    headers = _make_headers(request_path=request_path)
+    headers = _make_headers(method="GET", request_path=request_path)
     proxies = _make_proxies()
     rsp = requests.get(url=url, headers=headers, proxies=proxies)
     if rsp.status_code != 200:
@@ -131,10 +132,10 @@ def _make_url(request_path: str):
     return urljoin(_host.url, request_path)
 
 
-def _make_headers(request_path: str):
+def _make_headers(method: str, request_path: str, body: str = ""):
     req_timestamp = _get_timestamp()
     signature = _make_signature(
-        raw=req_timestamp + "GET" + request_path,
+        raw=req_timestamp + method.upper() + request_path + body,
         secret_key=_secret.secret_key,
     )
     ok_headers = {
@@ -157,3 +158,26 @@ def _make_proxies():
         "http": _proxy.url,
         "https": _proxy.url,
     }
+
+# 因为有危险性，所以暂时注释掉。
+# def order():
+#     request_path = "/api/v5/trade/order"
+#     logger.debug("order, request_path={}".format(request_path))
+#     url = _make_url(request_path=request_path)
+#     req_body_dict = {
+#         "instId": "DOGE-USDT-SWAP",
+#         "tdMode": "cross",
+#         "side": "buy",
+#         "ordType": "market",
+#         "sz": "1",
+#     }
+#     req_body_str = json.dumps(req_body_dict)
+#     headers = _make_headers(method="POST", request_path=request_path, body=req_body_str)
+#     proxies = _make_proxies()
+#     rsp = requests.post(url=url, headers=headers, proxies=proxies, data=req_body_str)
+#     if rsp.status_code != 200:
+#         raise Exception("http status code {}, rsp {}".format(rsp.status_code, rsp.json()))
+#     body = rsp.json()
+#     if body.get("code") != "0":
+#         raise Exception("response code {}".format(body))
+#     print("resp body:", body)
