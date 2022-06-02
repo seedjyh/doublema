@@ -167,7 +167,7 @@ def _make_proxies():
 #     req_body_dict = {
 #         "instId": "DOGE-USDT-SWAP",
 #         "tdMode": "cross",
-#         "side": "buy",
+#         "side": "buy",  # buy表示开多或平空，sell表示开空或平多
 #         "ordType": "market",
 #         "sz": "1",
 #     }
@@ -181,3 +181,9 @@ def _make_proxies():
 #     if body.get("code") != "0":
 #         raise Exception("response code {}".format(body))
 #     print("resp body:", body)
+#
+#
+# def set_leverage():
+#     # 设置杠杆倍数
+#     # POST /api/v5/account/set-leverage
+#     pass

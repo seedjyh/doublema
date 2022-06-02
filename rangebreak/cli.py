@@ -31,7 +31,7 @@ _score.init(market=_market)
 _atr.init(market=_market)
 _playback.init(market=_market)
 _bar = const.BAR_1D
-_total_asset = 1800.0
+_total_asset = 1500.0
 _each_max_lost_rage = 0.01
 
 def show_ccy(ccy: str):
