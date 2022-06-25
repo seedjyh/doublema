@@ -34,12 +34,15 @@ _bar = const.BAR_1D
 _total_asset = 1500.0
 _each_max_lost_rage = 0.01
 
+
+# show_ccy 处理命令 show ，可能是 show all
+#  显示指定加密货币，或所有关注的加密货币的当前状态。
 def show_ccy(ccy: str):
     logger.debug("show ccy, ccy={}".format(ccy))
     bar = _bar
     displayer = display.Displayer()
     fields = ["ccy", "unit", "each", "atr", "score", "operation"]
-    lines = []
+    lines = []  # lines 是一个 dict 的列表，用来被displayer显示用。
     td = const.bar_to_timedelta(bar=bar)
     until = datetime.now() - td
     since = until - td
@@ -55,6 +58,11 @@ def show_ccy(ccy: str):
         return __atr, __volatility, __each, __score
 
     def p2line(p: _position.Position) -> dict:
+        """
+        p2line 将一个仓位信息 Position (ccy, unit) 转化成 show ccy 命令的最终结果的一行的dict。这个dict将会被displayer显示为一行。
+        :param p: 仓位信息 (ccy, unit)
+        :return:
+        """
         atr, volatility, each, score = calc_line(p)
         last_price = _get_latest_candle(ccy=p.ccy, bar=_bar)
         return {

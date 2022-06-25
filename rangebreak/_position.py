@@ -34,6 +34,7 @@ def query_one(ccy: str):
     return query.get()
 
 
+# query_all 返回 Position 的列表。
 def query_all():
     return [p for p in Position.select().order_by(Position.ccy)]
 

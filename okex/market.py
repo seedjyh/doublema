@@ -6,7 +6,8 @@ market 实现了 model.Market 接口访问Okex交易所并下载行情数据的�
 依赖repo.Repo做缓存或存储，但自己不实现。
 """
 import logging
-from datetime import datetime, timedelta
+import time
+from datetime import datetime, timedelta, timezone
 
 import const
 import model
@@ -43,9 +44,11 @@ def query(ccy: str, bar: str, since: datetime, until: datetime):
         until -= bar_timedelta
     repo = Repo(ccy=ccy, bar=bar, db_conn=_db_conn)
     res = repo.query(since=since, until=until)
-    if len(res) > 0 and res[0].t().timestamp() < since.timestamp() + bar_timedelta.total_seconds() and \
-            res[-1].t().timestamp() >= until.timestamp() - bar_timedelta.total_seconds():
+    if data_is_enough([r.t() for r in res], since, until, bar_timedelta):
         return res
+    # if len(res) > 0 and res[0].t().timestamp() < since.timestamp() + bar_timedelta.total_seconds() and \
+    #         res[-1].t().timestamp() >= until.timestamp() - bar_timedelta.total_seconds():
+    #     return res
     res = []
     max_api_bar_range = 100  # api限制，最多100条
     now_since = since
@@ -60,6 +63,48 @@ def query(ccy: str, bar: str, since: datetime, until: datetime):
     res.sort(key=lambda candle: candle.t())
     return res
 
+
+def data_is_enough(data: [], since_timestamp: datetime, until_timestamp: datetime, bar_timedelta: timedelta) -> bool:
+    """
+    判断数据是否包含所有需要的 bar。
+    需要的bar的判断标准是，其特征时间戳（bar的开始时刻，按照bar对齐）位于 [since_timestamp, until_timestamp) 且无一遗漏。
+    :param data: datetime 列表
+    :param since_timestamp: 区间起点（含）
+    :param until_timestamp: 区间终点（不含）
+    :param bar_timedelta: 一个bar的时间间隔。
+    :return: 如果所有需要的bar都存在，返回True；否则返回False。
+    """
+    if data is None:
+        data = []
+    begin_timestamp = next_fit_timestamp(since_timestamp, bar_timedelta)
+    end_timestamp = next_fit_timestamp(until_timestamp, bar_timedelta)  # 最后一个所需的数据的下一个数据（不被需要）
+    if len(data) == 0:  # 如果已有的数据是空的，那么所需数据也要是空的，否则就是 False
+        return begin_timestamp == end_timestamp
+    # data.sort() 不知道怎么排序
+    for i in range(len(data)):
+        if i == 0:
+            if data[i].timestamp() != begin_timestamp.timestamp():
+                return False
+            else:
+                continue
+        if data[i].timestamp() - data[i].timestamp() != bar_timedelta.total_seconds(): # 如果数据间隔超过一个bar的间隔，则失败
+            return False
+    # 最后一个时间戳 + bar的时间间隔 = 最后一个所需数据的下一个数据（不被需要）
+    return data[-1].timestamp() + bar_timedelta.total_seconds() == end_timestamp.timestamp()
+
+
+def next_fit_timestamp(raw: datetime, fit_timedelta: timedelta) -> datetime:
+    """
+    获取指定时间戳的下一个对齐的时间戳。
+    :param raw: 原时间戳
+    :param fit_timedelta: 对齐单位。
+    :return: 对齐后的时间戳（总是 >= raw）
+    """
+    raw_sec = (raw + timedelta(hours=8)).timestamp()
+    fit_sec = fit_timedelta.total_seconds()
+    ans_sec = (raw_sec + fit_sec - 1) // fit_sec * fit_sec
+    ans = datetime.utcfromtimestamp(ans_sec)
+    return ans
 
 class Market(model.Market):
     """
